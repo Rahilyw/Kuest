@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Task(planner)",
+      "Task(coder)",
+      "Task(tester)",
+      "Task(reviewer)",
+      "Read",
+      "Write",
+      "Edit",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout -b *)",
+      "Bash(mkdir -p .pipeline)",
+      "Bash(rm -f .pipeline/spec.md .pipeline/changes.md .pipeline/test-results.md .pipeline/review.md)",
+      "Bash(npm test:*)"
+    ],
+    "deny": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(rm -rf *)",
+      "Bash(rm -r *)"
+    ]
+  }
+}

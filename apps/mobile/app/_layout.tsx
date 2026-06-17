@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { Stack, useRouter, useSegments } from 'expo-router'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useAuth } from '@/hooks/useAuth'
 
 export default function RootLayout() {
@@ -20,11 +21,13 @@ export default function RootLayout() {
   }, [session, loading])
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(auth)" />
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="quest/[id]" options={{ presentation: 'card' }} />
-      <Stack.Screen name="submit/[questId]" options={{ presentation: 'modal' }} />
-    </Stack>
+    <SafeAreaProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="quest/[id]" options={{ presentation: 'card' }} />
+        <Stack.Screen name="submit/[questId]" options={{ presentation: 'modal' }} />
+      </Stack>
+    </SafeAreaProvider>
   )
 }

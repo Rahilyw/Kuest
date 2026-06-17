@@ -1,4 +1,5 @@
 import { View, Text, StyleSheet } from 'react-native'
+import { COLORS, RADIUS, SPACING } from '@/lib/constants'
 import type { UserBadge } from '@/lib/types'
 
 interface Props {
@@ -9,7 +10,9 @@ export function BadgeGrid({ badges }: Props) {
   if (badges.length === 0) {
     return (
       <View style={styles.empty}>
-        <Text style={styles.emptyText}>Complete quests to earn badges</Text>
+        <Text style={styles.emptyIcon}>🏅</Text>
+        <Text style={styles.emptyTitle}>No badges yet</Text>
+        <Text style={styles.emptySubtitle}>Complete quests to earn your first badge</Text>
       </View>
     )
   }
@@ -27,17 +30,21 @@ export function BadgeGrid({ badges }: Props) {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: 16 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', paddingHorizontal: SPACING.lg },
   badge: {
     width: '30%',
+    aspectRatio: 1,
     alignItems: 'center',
-    backgroundColor: '#1E293B',
-    borderRadius: 12,
-    padding: 12,
+    justifyContent: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.md,
+    padding: SPACING.md,
     margin: '1.5%',
   },
-  badgeIcon: { fontSize: 32, marginBottom: 6 },
-  badgeName: { color: '#94A3B8', fontSize: 11, textAlign: 'center' },
-  empty: { paddingHorizontal: 20, paddingVertical: 32 },
-  emptyText: { color: '#475569', textAlign: 'center' },
+  badgeIcon: { fontSize: 28, marginBottom: SPACING.xs },
+  badgeName: { color: COLORS.textSecondary, fontSize: 11, textAlign: 'center' },
+  empty: { alignItems: 'center', paddingHorizontal: SPACING.xl, paddingVertical: SPACING.xxl * 2 },
+  emptyIcon: { fontSize: 36, marginBottom: SPACING.md },
+  emptyTitle: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '700', marginBottom: SPACING.sm },
+  emptySubtitle: { color: COLORS.textMuted, fontSize: 13, textAlign: 'center', lineHeight: 20 },
 })

@@ -1,47 +1,152 @@
 import { useState } from 'react'
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+} from 'react-native'
 import { useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useQuests } from '@/hooks/useQuests'
+import { useAuth } from '@/hooks/useAuth'
 import { QuestCard } from '@/components/QuestCard'
+import { QuestCardSkeleton } from '@/components/QuestCardSkeleton'
+import { SectionHeader } from '@/components/SectionHeader'
+import { CategoryChip } from '@/components/CategoryChip'
+import { EmptyState } from '@/components/EmptyState'
+import { Avatar } from '@/components/Avatar'
+import { LevelChip } from '@/components/LevelChip'
+import { COLORS, SPACING, RADIUS, CATEGORY_ICONS } from '@/lib/constants'
 import type { QuestCategory } from '@/lib/types'
 
 const CATEGORIES: { label: string; value: QuestCategory | undefined }[] = [
   { label: 'All', value: undefined },
-  { label: '🏃 Fitness', value: 'fitness' },
-  { label: '🤝 Social', value: 'social' },
-  { label: '🍽️ Food', value: 'food' },
-  { label: '🏘️ Community', value: 'community' },
-  { label: '🌿 Nature', value: 'nature' },
+  { label: `${CATEGORY_ICONS.fitness} Fitness`, value: 'fitness' },
+  { label: `${CATEGORY_ICONS.social} Social`, value: 'social' },
+  { label: `${CATEGORY_ICONS.food} Food`, value: 'food' },
+  { label: `${CATEGORY_ICONS.community} Community`, value: 'community' },
+  { label: `${CATEGORY_ICONS.nature} Nature`, value: 'nature' },
 ]
 
 export default function QuestFeed() {
   const router = useRouter()
+  const insets = useSafeAreaInsets()
   const [activeCategory, setActiveCategory] = useState<QuestCategory | undefined>(undefined)
-  const { quests, loading } = useQuests(activeCategory)
+  const { quests, loading, refetch } = useQuests(activeCategory)
+  const { profile } = useAuth()
+
+  // Featured quest: highest-XP active sponsored quest, derived client-side
+  const featuredQuest =
+    quests.length > 0
+      ? quests
+          .filter((q) => q.is_sponsored)
+          .sort((a, b) => b.xp_reward - a.xp_reward)[0] ?? null
+      : null
+
+  const hasProfile = profile !== null
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Kuest</Text>
-        <Text style={styles.subtitle}>Victoria, BC · Season 1</Text>
+      {/* Greeting header */}
+      <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
+        <View style={styles.headerRow}>
+          <View style={styles.greetingBlock}>
+            {hasProfile ? (
+              <>
+                <Text style={styles.greetingText}>Welcome back,</Text>
+                <Text style={styles.greetingName}>@{profile.username}</Text>
+              </>
+            ) : (
+              <Text style={styles.greetingName}>Welcome to Kuest</Text>
+            )}
+          </View>
+          {hasProfile && (
+            <View style={styles.headerRight}>
+              <LevelChip level={profile.level} />
+              <View style={styles.avatarWrapper}>
+                <Avatar username={profile.username} uri={profile.avatar_url} size={40} />
+              </View>
+            </View>
+          )}
+        </View>
+
+        {/* Compact XP progress strip */}
+        {hasProfile && (
+          <View style={styles.xpStrip}>
+            <Text style={styles.xpStripLabel}>{profile.total_xp.toLocaleString()} XP</Text>
+            <View style={styles.xpTrack}>
+              <View
+                style={[
+                  styles.xpFill,
+                  {
+                    width: (() => {
+                      const denom = getMinXpForLevel(profile.level + 1) - getMinXpForLevel(profile.level)
+                      const pct = denom === 0 ? 100 : Math.min(((profile.total_xp - getMinXpForLevel(profile.level)) / denom) * 100, 100)
+                      return `${pct}%`
+                    })(),
+                  },
+                ]}
+              />
+            </View>
+          </View>
+        )}
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryScroll}>
+      {/* Featured quest hero card */}
+      {!loading && featuredQuest && (
+        <TouchableOpacity
+          style={styles.featuredCard}
+          onPress={() => router.push(`/quest/${featuredQuest.id}`)}
+          activeOpacity={0.8}
+        >
+          <View style={styles.featuredBadge}>
+            <Text style={styles.featuredBadgeText}>⭐ Featured</Text>
+          </View>
+          <Text style={styles.featuredTitle} numberOfLines={1}>{featuredQuest.title}</Text>
+          <Text style={styles.featuredDesc} numberOfLines={2}>{featuredQuest.description}</Text>
+          <Text style={styles.featuredXp}>+{featuredQuest.xp_reward} XP</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Category chip row */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoryScroll}
+        contentContainerStyle={styles.categoryContent}
+      >
         {CATEGORIES.map((cat) => (
-          <TouchableOpacity
+          <CategoryChip
             key={cat.label}
-            style={[styles.chip, activeCategory === cat.value && styles.chipActive]}
+            label={cat.label}
+            active={activeCategory === cat.value}
             onPress={() => setActiveCategory(cat.value)}
-          >
-            <Text style={[styles.chipText, activeCategory === cat.value && styles.chipTextActive]}>
-              {cat.label}
-            </Text>
-          </TouchableOpacity>
+          />
         ))}
       </ScrollView>
 
+      {/* Section header */}
+      <SectionHeader
+        title="Active Quests"
+        trailing={loading ? undefined : `${quests.length}`}
+      />
+
+      {/* List area */}
       {loading ? (
-        <Text style={styles.loading}>Loading quests…</Text>
+        <ScrollView contentContainerStyle={styles.list}>
+          <QuestCardSkeleton />
+          <QuestCardSkeleton />
+          <QuestCardSkeleton />
+        </ScrollView>
+      ) : quests.length === 0 ? (
+        <EmptyState
+          icon="🗺️"
+          title="No quests here yet"
+          subtitle="Try a different category or check back soon."
+        />
       ) : (
         <FlatList
           data={quests}
@@ -51,28 +156,88 @@ export default function QuestFeed() {
           )}
           contentContainerStyle={styles.list}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={loading}
+              onRefresh={refetch}
+              tintColor={COLORS.accent}
+              colors={[COLORS.accent]}
+            />
+          }
         />
       )}
     </View>
   )
 }
 
+function getMinXpForLevel(level: number): number {
+  const XP_LEVELS = [0, 200, 500, 1000, 2000, 3500, 5500, 8000, 11000, 15000]
+  return XP_LEVELS[Math.min(level - 1, XP_LEVELS.length - 1)] ?? 0
+}
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A' },
-  header: { paddingTop: 60, paddingHorizontal: 20, paddingBottom: 16 },
-  title: { fontSize: 32, fontWeight: '800', color: '#6366F1' },
-  subtitle: { color: '#64748B', marginTop: 4 },
-  categoryScroll: { paddingHorizontal: 16, marginBottom: 8 },
-  chip: {
-    backgroundColor: '#1E293B',
-    borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    marginRight: 8,
+  container: { flex: 1, backgroundColor: COLORS.bg },
+  header: {
+    paddingHorizontal: SPACING.xl,
+    paddingBottom: SPACING.lg,
   },
-  chipActive: { backgroundColor: '#6366F1' },
-  chipText: { color: '#64748B', fontWeight: '600' },
-  chipTextActive: { color: '#fff' },
-  list: { paddingHorizontal: 16, paddingBottom: 100 },
-  loading: { color: '#64748B', textAlign: 'center', marginTop: 40 },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: SPACING.md,
+  },
+  greetingBlock: { flex: 1 },
+  greetingText: { color: COLORS.textMuted, fontSize: 13 },
+  greetingName: { color: COLORS.textPrimary, fontSize: 22, fontWeight: '800' },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  avatarWrapper: { marginLeft: SPACING.xs },
+  xpStrip: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
+  xpStripLabel: { color: COLORS.textMuted, fontSize: 12, fontWeight: '600', width: 72 },
+  xpTrack: {
+    flex: 1,
+    height: 6,
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.pill,
+    overflow: 'hidden',
+  },
+  xpFill: {
+    height: '100%',
+    backgroundColor: COLORS.accent,
+    borderRadius: RADIUS.pill,
+  },
+  featuredCard: {
+    marginHorizontal: SPACING.xl,
+    marginBottom: SPACING.md,
+    backgroundColor: COLORS.accentSoft,
+    borderRadius: RADIUS.lg,
+    padding: SPACING.lg,
+    borderWidth: 1,
+    borderColor: COLORS.accent,
+  },
+  featuredBadge: {
+    alignSelf: 'flex-start',
+    backgroundColor: `${COLORS.sponsor}22`,
+    borderRadius: RADIUS.pill,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 2,
+    marginBottom: SPACING.sm,
+  },
+  featuredBadgeText: { color: COLORS.sponsor, fontSize: 11, fontWeight: '700' },
+  featuredTitle: {
+    color: COLORS.textPrimary,
+    fontSize: 16,
+    fontWeight: '800',
+    marginBottom: SPACING.xs,
+  },
+  featuredDesc: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: SPACING.sm,
+  },
+  featuredXp: { color: COLORS.accentText, fontWeight: '800', fontSize: 14 },
+  categoryScroll: { marginBottom: SPACING.xs },
+  categoryContent: { paddingHorizontal: SPACING.lg, paddingVertical: SPACING.xs },
+  list: { paddingHorizontal: SPACING.lg, paddingBottom: 100 },
 })

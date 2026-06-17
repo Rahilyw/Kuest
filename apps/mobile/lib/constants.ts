@@ -1,3 +1,22 @@
+export const COLORS = {
+  bg: '#0B1120',
+  surface: '#1E293B',
+  surfaceElevated: '#273449',
+  border: '#1E293B',
+  textPrimary: '#F1F5F9',
+  textSecondary: '#94A3B8',
+  textMuted: '#64748B',
+  accent: '#6366F1',
+  accentSoft: '#312E81',
+  accentText: '#A5B4FC',
+  warning: '#F59E0B',
+  success: '#22C55E',
+  sponsor: '#F59E0B',
+} as const
+
+export const SPACING = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24 } as const
+export const RADIUS = { sm: 8, md: 12, lg: 16, xl: 20, pill: 999 } as const
+
 export const CITY = {
   name: 'Victoria, BC',
   lat: 48.4284,
