@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuth } from '@/hooks/useAuth'
 import { useLocation } from '@/hooks/useLocation'
 import { useQuest } from '@/hooks/useQuests'
-import { PROOF_GEOFENCE_RADIUS } from '@/lib/constants'
+import { PROOF_GEOFENCE_RADIUS, COLORS } from '@/lib/constants'
 
 export default function Submit() {
   const { questId } = useLocalSearchParams<{ questId: string }>()
@@ -80,32 +80,46 @@ export default function Submit() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.close} onPress={() => router.back()}>
-        <Text style={styles.closeText}>✕</Text>
-      </TouchableOpacity>
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>Submit Proof</Text>
+          <Text style={styles.questName}>{quest?.title}</Text>
+        </View>
+        <TouchableOpacity style={styles.closeBtn} onPress={() => router.back()}>
+          <Text style={styles.closeText}>✕</Text>
+        </TouchableOpacity>
+      </View>
 
-      <Text style={styles.title}>Submit Proof</Text>
-      <Text style={styles.questName}>{quest?.title}</Text>
-
-      <TouchableOpacity style={styles.photoBox} onPress={pickPhoto}>
+      {/* Photo box — glass card treatment */}
+      <TouchableOpacity style={styles.photoBox} onPress={pickPhoto} activeOpacity={0.85}>
         {photo ? (
           <Image source={{ uri: photo }} style={styles.photo} />
         ) : (
-          <Text style={styles.photoPlaceholder}>📷{'\n'}Take a photo</Text>
+          <View style={styles.photoEmpty}>
+            <Text style={styles.photoIcon}>📷</Text>
+            <Text style={styles.photoHint}>Tap to take a photo</Text>
+            <Text style={styles.photoSub}>Proof of your quest completion</Text>
+          </View>
         )}
       </TouchableOpacity>
 
-      <View style={styles.status}>
-        <Text style={[styles.statusDot, { color: coords ? '#22C55E' : '#F59E0B' }]}>●</Text>
+      {/* GPS status */}
+      <View style={styles.statusRow}>
+        <Text style={{ color: coords ? COLORS.success : COLORS.warning, marginRight: 6, fontSize: 12 }}>●</Text>
         <Text style={styles.statusText}>
-          {coords ? `GPS locked (±${Math.round(coords.accuracy ?? 0)}m)` : 'Waiting for GPS…'}
+          {coords
+            ? `GPS locked, ±${Math.round(coords.accuracy ?? 0)}m`
+            : 'Waiting for GPS location…'}
         </Text>
       </View>
 
+      {/* Submit CTA */}
       <TouchableOpacity
         style={[styles.submitBtn, (!photo || !coords || submitting) && styles.submitDisabled]}
         onPress={handleSubmit}
         disabled={!photo || !coords || submitting}
+        activeOpacity={0.85}
       >
         <Text style={styles.submitText}>
           {submitting ? 'Submitting…' : `Submit for +${quest?.xp_reward ?? '?'} XP`}
@@ -116,26 +130,79 @@ export default function Submit() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A', padding: 24 },
-  close: { alignSelf: 'flex-end', padding: 8 },
-  closeText: { color: '#64748B', fontSize: 20 },
-  title: { fontSize: 24, fontWeight: '800', color: '#F1F5F9', marginBottom: 4 },
-  questName: { color: '#64748B', marginBottom: 24 },
-  photoBox: {
+  container: {
     flex: 1,
-    backgroundColor: '#1E293B',
-    borderRadius: 16,
+    backgroundColor: COLORS.bg,
+    padding: 20,
+    paddingTop: 56,
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 24,
+  },
+  title: { fontSize: 24, fontWeight: '800', color: COLORS.textPrimary, marginBottom: 2 },
+  questName: { color: COLORS.textMuted, fontSize: 14 },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.surface,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  closeText: { color: COLORS.textMuted, fontSize: 16, fontWeight: '700' },
+  photoBox: {
+    flex: 1,
+    backgroundColor: COLORS.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 16,
     overflow: 'hidden',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.07,
+    shadowRadius: 16,
+    elevation: 4,
   },
   photo: { width: '100%', height: '100%' },
-  photoPlaceholder: { color: '#64748B', fontSize: 18, textAlign: 'center', lineHeight: 32 },
-  status: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  statusDot: { marginRight: 8, fontSize: 12 },
-  statusText: { color: '#64748B', fontSize: 14 },
-  submitBtn: { backgroundColor: '#6366F1', borderRadius: 14, padding: 18, alignItems: 'center' },
+  photoEmpty: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 32,
+  },
+  photoIcon: { fontSize: 40, marginBottom: 12 },
+  photoHint: { color: COLORS.textPrimary, fontSize: 16, fontWeight: '700', marginBottom: 6 },
+  photoSub: { color: COLORS.textMuted, fontSize: 13, textAlign: 'center' },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.surface,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  statusText: { color: COLORS.textSecondary, fontSize: 13 },
+  submitBtn: {
+    backgroundColor: COLORS.accent,
+    borderRadius: 14,
+    padding: 18,
+    alignItems: 'center',
+    marginBottom: 16,
+    shadowColor: COLORS.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.28,
+    shadowRadius: 10,
+    elevation: 5,
+  },
   submitDisabled: { opacity: 0.4 },
-  submitText: { color: '#fff', fontWeight: '800', fontSize: 16 },
+  submitText: { color: '#FFFFFF', fontWeight: '800', fontSize: 16 },
 })

@@ -18,13 +18,16 @@ export default function SignIn() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.logo}>Kuest</Text>
-      <Text style={styles.tagline}>Real life, gamified.</Text>
+      {/* Wordmark */}
+      <View style={styles.hero}>
+        <Text style={styles.logo}>Kuest</Text>
+        <Text style={styles.tagline}>Real life, gamified.</Text>
+      </View>
 
       <TextInput
         style={styles.input}
         placeholder="Email"
-        placeholderTextColor="#64748B"
+        placeholderTextColor="#94A3B8"
         value={email}
         onChangeText={setEmail}
         autoCapitalize="none"
@@ -33,13 +36,13 @@ export default function SignIn() {
       <TextInput
         style={styles.input}
         placeholder="Password"
-        placeholderTextColor="#64748B"
+        placeholderTextColor="#94A3B8"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSignIn} disabled={loading}>
+      <TouchableOpacity style={styles.button} onPress={handleSignIn} disabled={loading} activeOpacity={0.85}>
         <Text style={styles.buttonText}>{loading ? 'Signing in…' : 'Sign In'}</Text>
       </TouchableOpacity>
 
@@ -51,24 +54,49 @@ export default function SignIn() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F172A', padding: 24, justifyContent: 'center' },
-  logo: { fontSize: 48, fontWeight: '800', color: '#6366F1', textAlign: 'center', marginBottom: 8 },
-  tagline: { color: '#94A3B8', textAlign: 'center', marginBottom: 48, fontSize: 16 },
+  container: {
+    flex: 1,
+    backgroundColor: '#F0F9FF',
+    padding: 24,
+    justifyContent: 'center',
+  },
+  hero: { alignItems: 'center', marginBottom: 48 },
+  logo: {
+    fontSize: 52,
+    fontWeight: '800',
+    color: '#6366F1',
+    letterSpacing: -1,
+    marginBottom: 6,
+  },
+  tagline: { color: '#94A3B8', fontSize: 16 },
   input: {
-    backgroundColor: '#1E293B',
-    color: '#F1F5F9',
+    backgroundColor: '#FFFFFF',
+    color: '#0F172A',
     borderRadius: 12,
     padding: 16,
-    marginBottom: 16,
+    marginBottom: 12,
     fontSize: 16,
+    borderWidth: 1.5,
+    borderColor: 'rgba(15,23,42,0.07)',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 8,
+    elevation: 2,
   },
   button: {
     backgroundColor: '#6366F1',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
+    marginTop: 8,
     marginBottom: 16,
+    shadowColor: '#6366F1',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.28,
+    shadowRadius: 10,
+    elevation: 5,
   },
-  buttonText: { color: '#fff', fontWeight: '700', fontSize: 16 },
-  link: { color: '#6366F1', textAlign: 'center' },
+  buttonText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
+  link: { color: '#6366F1', textAlign: 'center', fontWeight: '600' },
 })

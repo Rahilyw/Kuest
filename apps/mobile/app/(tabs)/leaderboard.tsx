@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     gap: SPACING.md,
   },
   rowAlt: { backgroundColor: COLORS.surface },
-  rowHighlight: { backgroundColor: '#1E1B4B' },
+  rowHighlight: { backgroundColor: COLORS.accentSoft },
   rankCell: { width: 36, alignItems: 'center' },
   medal: { fontSize: 20 },
   rank: { color: COLORS.textMuted, fontWeight: '700', fontSize: 14 },

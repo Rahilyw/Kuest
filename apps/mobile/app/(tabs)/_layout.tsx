@@ -16,16 +16,23 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: COLORS.bg,
-          borderTopColor: COLORS.border,
+          // Glass tab bar: white surface floating above content
+          backgroundColor: 'rgba(255, 255, 255, 0.96)',
+          borderTopColor: 'rgba(15, 23, 42, 0.06)',
           borderTopWidth: 1,
           height: 64,
           paddingBottom: 8,
           paddingTop: 4,
+          // Soft lift shadow facing upward
+          shadowColor: '#0F172A',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.06,
+          shadowRadius: 16,
+          elevation: 12,
         },
         tabBarActiveTintColor: COLORS.accent,
         tabBarInactiveTintColor: COLORS.textMuted,
-        tabBarLabelStyle: { fontWeight: '600' },
+        tabBarLabelStyle: { fontWeight: '600', fontSize: 11 },
       }}
     >
       <Tabs.Screen

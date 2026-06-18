@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     padding: SPACING.lg,
     borderRadius: RADIUS.md,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: COLORS.border,
     alignItems: 'center',
   },
   signOutText: { color: COLORS.textMuted, fontWeight: '600' },
