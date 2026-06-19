@@ -1,5 +1,6 @@
 'use server'
 
+import { invokeEdgeFunction } from '@/lib/invoke-edge-function'
 import { supabaseAdmin } from '@/lib/supabase'
 
 export interface Completion {
@@ -32,4 +33,12 @@ export async function updateCompletionStatus(id: string, status: 'approved' | 'r
     .eq('id', id)
 
   if (error) throw new Error(error.message)
+
+  if (status === 'approved') {
+    try {
+      await invokeEdgeFunction('award-xp', { completion_id: id })
+    } catch (err) {
+      console.error('[award-xp] failed for completion', id, err)
+    }
+  }
 }

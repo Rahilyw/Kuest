@@ -1,190 +1,274 @@
 # Kuest — Product Roadmap
 
 **Last updated:** June 18, 2026  
-**Stage:** MVP Complete → Pre-Launch Hardening → Growth
+**Stage:** MVP Complete → Pre-Launch Hardening
+
+The core product loop works end-to-end: discover quest → submit proof → admin approves → XP + leaderboard update. What remains is wiring (badges, push, redemption), authorization hardening, and ship infrastructure — not greenfield feature work.
 
 ---
 
-## Where We Are Right Now
-
-### What's Fully Implemented
-
-**Mobile App (Expo/React Native)**
-
-| Feature | Status | Notes |
-|---|---|---|
-| Email/password auth (sign up, sign in, sign out) | ✅ Done | Auto-creates profile on sign up |
-| Quest feed with category filtering | ✅ Done | Pull-to-refresh, featured hero |
-| Quest detail screen | ✅ Done | Full info, category colors, CTA |
-| Quest submission (photo + GPS) | ✅ Done | Geofence validation, Supabase Storage |
-| Map view with markers + geofence circles | ✅ Done | Category-colored markers |
-| Weekly leaderboard | ✅ Done | Top 50, user highlight, DB view |
-| User profile (XP bar, badges, stats) | ✅ Done | Deterministic avatar, level chip |
-| XP & level system (10 levels, 0–15k XP) | ✅ Done | DB trigger awards XP on approval |
-| Badge display grid | ✅ Done | 13 starter badges seeded |
-| Design system: Saltwater Saturday | ✅ Done | DESIGN.md fully spec'd + implemented |
-
-**Admin Dashboard (Next.js 14)**
-
-| Feature | Status | Notes |
-|---|---|---|
-| Dashboard stats overview | ✅ Done | Users, completions, pending, active quests |
-| Completions approval queue | ✅ Done | Approve/reject with photo + GPS |
-| Quest management (list + create) | ✅ Done | Form for title, coords, XP, sponsor |
-| Users table | ✅ Done | XP-sorted, server-rendered (ISR 60s) |
-| Sponsors performance view | ✅ Done | Per-sponsor completion metrics |
-
-**Database & Backend**
-
-| Feature | Status | Notes |
-|---|---|---|
-| PostgreSQL schema (5 tables, 1 view) | ✅ Done | Supabase with RLS on all tables |
-| XP-award DB trigger on approval | ✅ Done | Auto-increments XP + level |
-| 20 seeded quests (Victoria, BC) | ✅ Done | Real GPS coords, 5 categories |
-| 13 seeded badges | ✅ Done | Static, not auto-awarded yet |
-| Edge functions (award-xp, redemption code) | ✅ Scaffolded | Not wired to UI |
-| Supabase Storage (proof-photos bucket) | ✅ Done | Public bucket, RLS on upload |
-
-**Tests**
+## Snapshot
 
 | Area | Status |
 |---|---|
-| Logic tests (XP, leaderboard, avatar, geofence) | ✅ 555-line pure-JS test file |
-| UI / integration tests | ❌ None yet |
+| Mobile core loop | ✅ Shippable |
+| Admin operations | ✅ Usable (with auth gaps) |
+| Engagement plumbing | ⚠️ Partially wired |
+| Sponsor / B2B loop | ❌ Not connected |
+| Production readiness | ⚠️ EAS + error handling incomplete |
+
+**Highest-impact blockers before real users:**
+
+1. Badge seed data ≠ unlock logic — only ~1 of 13 badges reliably awards today
+2. `award-xp` edge function never called on approval — no push on approve, edge badge logic skipped
+3. Admin auth is session-only — any Supabase user can access the dashboard
+4. EAS config still has placeholder project IDs and secrets
 
 ---
 
-### Known Gaps & Stubs
+## What's Fully Implemented
+
+### Mobile App (`apps/mobile`)
+
+| Feature | Notes |
+|---|---|
+| Email/password auth | Sign up, sign in, sign out; profile auto-created on sign up |
+| Onboarding (3 screens) | First-launch intro, city pick, sign-up/sign-in CTA — `app/onboarding.tsx` |
+| Quest feed | Category filter, pull-to-refresh, featured sponsored hero |
+| Quest detail | Full info, category colors, start/submit CTA |
+| Quest submission | Camera proof, GPS geofence, Supabase Storage upload |
+| Submission celebration | Post-submit modal (pending approval) — `CompletionCelebration.tsx` |
+| Map view | Category-colored markers + geofence circles |
+| Weekly leaderboard | Top 50, user highlight, DB view |
+| User profile | XP bar, badge grid, stats, quest history (last 20 approved) |
+| Settings screen | Account info, push toggles, sign out — `app/settings.tsx` |
+| XP & level system | 10 levels, 0–15k XP; DB trigger on approval |
+| Push token registration | Permission, Expo token, save to `profiles.push_token` |
+| Design system | Saltwater Saturday — `DESIGN.md` spec'd + implemented |
+
+### Admin Dashboard (`apps/admin`)
+
+| Feature | Notes |
+|---|---|
+| Session auth + login page | Middleware redirects unauthenticated users to `/login` |
+| Service role server-only | `supabaseAdmin` in server components/actions only — never in client bundle |
+| Dashboard stats | Users, completions, pending, active quests |
+| Completions queue | Approve/reject with photo + GPS |
+| Quest management | List, create, toggle active/inactive |
+| Users table | XP-sorted, server-rendered (ISR 60s) |
+| Sponsors view | Per-sponsor completion metrics (display only) |
+
+### Database & Backend (`supabase/`)
+
+| Feature | Notes |
+|---|---|
+| PostgreSQL schema | 5 tables, 1 view, RLS on core tables |
+| XP-award DB trigger | `on_completion_approved` — increments XP + recalculates level |
+| Badge unlock DB trigger | `on_xp_update` in `002_badge_unlock_trigger.sql` |
+| Migrations 001–004 | Schema, badges, categories, push_token |
+| 20 seeded quests | Victoria, BC — real GPS, 5 categories |
+| 13 seeded badges | Names/rules **do not match** unlock trigger (see gaps) |
+| Edge functions | `award-xp`, `generate-redemption-code` — implemented, **not invoked** |
+| Supabase Storage | `proof-photos` bucket, RLS on upload |
+
+### Tests
+
+| Area | Status |
+|---|---|
+| Logic tests (XP, leaderboard, avatar, geofence) | ✅ `apps/mobile/__tests__/logic.test.js` |
+| UI / integration tests | ❌ None |
+
+---
+
+## Partially Implemented
+
+These exist in code but are incomplete, misaligned, or not connected end-to-end.
+
+| Feature | What works | What's missing |
+|---|---|---|
+| **Push notifications** | Client registration, settings toggle, sign-out cleanup | Backend sender on approval; `award-xp` not called; no new-quest/streak pushes; weekly digest is local-only; EAS project ID placeholder |
+| **Badge auto-unlock** | DB trigger + edge function logic exist | Seed badge names/rules don't match trigger; only `First Quest` reliably unlocks |
+| **Admin auth** | Session gate via middleware | No admin role/allowlist — any authenticated user gets in |
+| **Settings** | Account display, push prefs, sign out | Privacy/Terms stubs; no edit city/profile |
+| **EAS Build** | `eas.json`, npm scripts, `BUILDING.md` | Placeholder env vars, project ID, submit credentials |
+| **Sponsored quests (UI)** | Feed hero + sponsor pill on `QuestCard` | Admin create form has no sponsor fields in UI; no sponsored rows in seed |
+| **Map view** | Markers, circles, user location | `React.Fragment` used without `import React` — likely runtime error |
+| **Quest management (admin)** | Create + toggle status | No edit; sponsor fields not exposed in form |
+
+---
+
+## Known Gaps
 
 | Gap | Severity | Impact |
 |---|---|---|
-| **Admin has no authentication guard** | 🔴 Critical | Anyone can access /admin — must fix before any public exposure |
-| **Badge unlock logic not implemented** | 🟠 High | Badges exist in DB but are never auto-awarded |
-| **Push notifications not wired** | 🟠 High | `expo-notifications` imported, nothing implemented |
-| **Settings screen missing** | 🟡 Medium | Button exists in profile, no nav handler |
-| **Avatar photo upload missing** | 🟡 Medium | Avatar is hash-based; no user photo flow |
-| **Sponsor redemption code not user-facing** | 🟡 Medium | Edge function exists, not wired to mobile or admin |
-| **Sponsor export button missing** | 🟡 Medium | Placeholder on sponsors page |
-| **No onboarding / intro flow** | 🟡 Medium | First-time users land directly on quest feed |
-| **No streak system** | 🟡 Medium | Mentioned as retention mechanic in PRODUCT.md |
-| **Social features absent** | 🟢 Low | Friends, activity feed — v2 |
-| **No in-app quest search** | 🟢 Low | Currently only category filter |
-| **Admin service role key exposed client-side** | 🔴 Critical | Should be server-side only (Next.js API routes) |
+| **Badge seed ↔ unlock mismatch** | ⚠️ Partial | 12/13 badges wired via `005_align_badge_unlock_logic.sql`; Season Veteran deferred (requires seasons table) |
+| **`award-xp` not wired to admin approval** | 🔴 Critical | No push on approve; edge-function badge logic never runs |
+| **Admin has no role allowlist** | 🔴 Critical | Any Supabase account can access admin after login |
+| **EAS not configured for real builds** | 🔴 Critical (ship) | Placeholders block TestFlight / Play Store |
+| **Redemption code flow** | 🟠 High | Edge function + DB column exist; no mobile UI or admin invoke |
+| **Streak system** | 🟠 High | Retention mechanic from PRODUCT.md — not started |
+| **Avatar photo upload** | 🟡 Medium | Display only; hash-based fallback |
+| **Error boundary + crash reporting** | 🟡 Medium | Crashes are silent in production |
+| **Sponsor export** | 🟡 Medium | Placeholder copy on sponsors page |
+| **Quest expiry / scheduling** | 🟡 Medium | No `active_from` / `active_until` in schema |
+| **Admin quest editing** | 🟡 Medium | Create + toggle only |
+| **Social features** | 🟢 Low | Friends, activity feed — v2 |
+| **In-app quest search** | 🟢 Low | Category filter only |
+
+### Resolved since prior roadmap
+
+| Was listed as gap | Now |
+|---|---|
+| Admin has no authentication guard | ✅ Session middleware + login page (role check still needed) |
+| Service role key exposed client-side | ✅ `server-only` module; client pages use server actions |
+| Push notifications not wired | ⚠️ Client registration done; sending not wired |
+| Settings screen missing | ✅ Core screen shipped |
+| No onboarding flow | ✅ 3-screen first-launch flow |
+| Quest history missing | ✅ Profile section with approved completions |
+| Submission celebration missing | ✅ Post-submit modal |
 
 ---
 
 ## Roadmap
 
-### Phase 0 — Launch Hardening (Do First, ~1–2 weeks)
+Status key: ✅ Done · ⚠️ Partial · ❌ Not started
 
-These are blockers or security issues that must be resolved before any real users touch the app.
+### Phase 0 — Launch Hardening (~1–2 weeks)
 
-| # | Task | Why |
-|---|---|---|
-| 0.1 | **Admin auth guard** (Supabase Auth on Next.js admin) | Security — admin is wide open |
-| 0.2 | **Move admin service role key to server-side** (Next.js API routes / server actions only) | Security — service role key must never reach the browser |
-| 0.3 | **Badge auto-unlock engine** (server-side function or DB trigger) | Core engagement loop; badges exist but are never earned |
-| 0.4 | **Settings screen** (notification prefs, city field, sign-out) | Profile button already exists with no handler |
-| 0.5 | **Error boundary + crash handling** in mobile | User-facing resilience |
-| 0.6 | **EAS Build setup** (Expo Application Services for iOS/Android builds) | Required to actually ship to TestFlight / Google Play |
+Blockers before any real users touch the app.
+
+| # | Task | Status | Why / next step |
+|---|---|---|---|
+| 0.1 | **Admin role allowlist** | ⚠️ Partial | Middleware exists; add email/domain or role check so not every Supabase user is an admin |
+| 0.2 | **Service role server-side only** | ✅ Done | `apps/admin/lib/supabase.ts` uses `server-only`; no client imports |
+| 0.3 | **Badge auto-unlock — align seed + trigger** | ⚠️ Broken | Pick one source of truth: update `seed.sql` names/thresholds OR rewrite `002_badge_unlock_trigger.sql` + `award-xp` to match seed |
+| 0.4 | **Settings screen polish** | ⚠️ Partial | Core done; add edit city, wire Privacy/Terms links |
+| 0.5 | **Error boundary + crash reporting** | ❌ | Root-level `ErrorBoundary` in mobile; Sentry or equivalent |
+| 0.6 | **EAS Build — real config** | ⚠️ Partial | Run `eas init`, replace placeholders in `app.json` + `eas.json`, first dev/preview build |
+| 0.7 | **Wire `award-xp` on approval** | ❌ | Call from `apps/admin/app/completions/actions.ts` after approve — unlocks push + edge badge path |
+| 0.8 | **Fix map `React` import** | ❌ | One-line fix in `app/(tabs)/map.tsx` |
+| 0.9 | **Consolidate migrations + docs** | ❌ | Duplicate `push_token` migrations; README only documents `001` — document full order |
+
+**Suggested order:** 0.3 → 0.7 → 0.1 → 0.8 → 0.6 → 0.5
 
 ---
 
 ### Phase 1 — Retention Mechanics (Weeks 2–4)
 
-Core engagement loops that keep users coming back after their first quest.
-
-| # | Task | Why |
-|---|---|---|
-| 1.1 | **Push notifications** — quest approved, new quest added, streak reminder | Primary re-engagement channel |
-| 1.2 | **Streak system** — daily/weekly quest completion streak counter + display | Retention via habit formation (Duolingo mechanic, city flavor) |
-| 1.3 | **In-app quest completion celebration** — appears after submission, not before approval | Reward the action, not the outcome (PRODUCT.md principle) |
-| 1.4 | **Avatar photo upload** — pick from library, crop, upload to Supabase Storage | Social identity; profile feels more personal |
-| 1.5 | **Quest history tab or section on profile** — list of completed quests (approved only) | Tangible record of real-world activity |
-| 1.6 | **Onboarding flow** — 2-3 screen intro on first launch (what Kuest is, pick city, first quest CTA) | Cold-start UX for new users |
+| # | Task | Status | Why / next step |
+|---|---|---|---|
+| 1.1 | **Push notifications — full pipeline** | ⚠️ Partial | Token registration done; wire sender, in-app listeners, new-quest + streak reminders |
+| 1.2 | **Streak system** | ❌ | Daily/weekly completion counter + profile display |
+| 1.3 | **Submission celebration** | ✅ Done | Modal after submit, not after approval — matches PRODUCT.md |
+| 1.4 | **Avatar photo upload** | ❌ | Pick, crop, upload to Storage; update `profiles.avatar_url` |
+| 1.5 | **Quest history on profile** | ✅ Done | Approved completions, last 20, empty state |
+| 1.6 | **Onboarding flow** | ✅ Done | 3 screens, city pick, AsyncStorage gate |
 
 ---
 
 ### Phase 2 — Business Model (Weeks 4–6)
 
-Sponsor features that make Kuest a viable B2B revenue channel.
-
-| # | Task | Why |
-|---|---|---|
-| 2.1 | **Sponsor redemption code flow** — mobile screen to enter/display code after approval, admin wires edge function | Closes the loop between quest completion and sponsor reward |
-| 2.2 | **Sponsor export** — CSV/PDF export of completion metrics per sponsor | Admin operational tool for sponsor invoicing |
-| 2.3 | **Sponsored quest highlight design** — distinct card treatment in feed (subtle partner branding) | Differentiates sponsored from community quests in UI |
-| 2.4 | **Quest expiry + scheduling** — quests have active_from / active_until dates | Sponsors want time-bounded campaigns |
-| 2.5 | **Admin quest editing** — edit existing quest (currently only create + toggle) | QoL for quest operators |
+| # | Task | Status | Why / next step |
+|---|---|---|---|
+| 2.1 | **Redemption code flow** | ❌ | Wire `generate-redemption-code` from admin on sponsored approval; show code in mobile post-approval |
+| 2.2 | **Sponsor export** | ❌ | CSV export of completion metrics per sponsor |
+| 2.3 | **Sponsored quest UI (admin create)** | ⚠️ Partial | Mobile feed supports sponsors; add sponsor fields to admin quest form + seed sponsored quests |
+| 2.4 | **Quest expiry + scheduling** | ❌ | `active_from` / `active_until` columns + admin UI |
+| 2.5 | **Admin quest editing** | ❌ | Edit existing quest fields, not just create + toggle |
 
 ---
 
 ### Phase 3 — Social Layer (Weeks 6–10)
 
-The features that turn solo play into community momentum.
-
-| # | Task | Why |
+| # | Task | Status |
 |---|---|---|
-| 3.1 | **Activity feed** — friends' recent completions (with photo) | Social proof + FOMO loop |
-| 3.2 | **Follow/friend system** — mutual follows or one-way follows | Prerequisite for feed |
-| 3.3 | **Quest detail: "X friends completed"** counter | Social proof on individual quests |
-| 3.4 | **Share quest / completion** — native share sheet with quest image | Organic growth vector |
-| 3.5 | **In-app quest comments or reactions** | Community voice on quests |
-| 3.6 | **Neighborhood / area filtering** on map | Victoria is walkable; neighborhood context is local identity |
+| 3.1 | Activity feed — friends' recent completions | ❌ |
+| 3.2 | Follow/friend system | ❌ |
+| 3.3 | Quest detail: "X friends completed" counter | ❌ |
+| 3.4 | Share quest / completion (native share sheet) | ❌ |
+| 3.5 | In-app quest comments or reactions | ❌ |
+| 3.6 | Neighborhood / area filtering on map | ❌ |
 
 ---
 
 ### Phase 4 — Scale & Expansion (Weeks 10+)
 
-Infrastructure and product moves for multi-city or multi-operator growth.
-
-| # | Task | Why |
+| # | Task | Status |
 |---|---|---|
-| 4.1 | **Multi-city support** — city selector, city-scoped quests/leaderboard | Core growth: beyond Victoria |
-| 4.2 | **Quest types beyond photo proof** — check-in only, QR scan, social media proof | Broadens quest design possibilities for sponsors |
-| 4.3 | **Self-serve sponsor portal** — sponsors create/manage their own quests | Reduces admin load, scales B2B |
-| 4.4 | **Seasonal / special event quests** — festival mode, city event tie-ins | Local identity product hook |
-| 4.5 | **All-time leaderboard + past seasons archive** | Long-term progression sense |
-| 4.6 | **iOS / Android widget** — current streak, nearby quest | Home screen presence |
+| 4.1 | Multi-city support — scoped quests + leaderboard | ❌ (onboarding city pick is pilot-only) |
+| 4.2 | Quest types beyond photo proof (check-in, QR, social) | ❌ |
+| 4.3 | Self-serve sponsor portal | ❌ |
+| 4.4 | Seasonal / special event quests | ❌ |
+| 4.5 | All-time leaderboard + past seasons archive | ❌ |
+| 4.6 | iOS / Android widget (streak, nearby quest) | ❌ |
 
 ---
 
-## Priority Feature Matrix
+## Priority Matrix (Revised)
 
-| Feature | Effort | Impact | Priority |
-|---|---|---|---|
-| Admin auth guard | Low | Critical | P0 |
-| Move service key server-side | Low | Critical | P0 |
-| Badge auto-unlock logic | Medium | High | P0 |
-| Settings screen | Low | Medium | P0 |
-| EAS Build setup | Low | Critical (ship) | P0 |
-| Push notifications | Medium | High | P1 |
-| Streak system | Medium | High | P1 |
-| Onboarding flow | Medium | High | P1 |
-| Avatar upload | Low | Medium | P1 |
-| Quest history | Low | Medium | P1 |
-| Redemption code flow | Medium | High | P2 |
-| Sponsor export | Low | Medium | P2 |
-| Quest expiry / scheduling | Medium | Medium | P2 |
-| Admin quest editing | Low | Medium | P2 |
-| Activity feed | High | High | P3 |
-| Follow system | High | High | P3 |
-| Share sheet | Low | Medium | P3 |
-| Multi-city support | High | High | P4 |
-| Self-serve sponsor portal | High | High | P4 |
+| Feature | Effort | Impact | Priority | Status |
+|---|---|---|---|---|
+| Badge seed ↔ unlock alignment | Medium | Critical | **P0** | ⚠️ Broken |
+| Wire `award-xp` on approval | Low | Critical | **P0** | ❌ |
+| Admin role allowlist | Low | Critical | **P0** | ⚠️ Partial |
+| EAS real config + first build | Low | Critical (ship) | **P0** | ⚠️ Partial |
+| Fix map React import | Trivial | Medium | **P0** | ❌ |
+| Error boundary + Sentry | Low | High | **P0** | ❌ |
+| Push notification sending | Medium | High | **P1** | ⚠️ Partial |
+| Streak system | Medium | High | **P1** | ❌ |
+| Avatar upload | Low | Medium | **P1** | ❌ |
+| Redemption code flow | Medium | High | **P2** | ❌ |
+| Sponsor export + admin sponsor fields | Low–Med | Medium | **P2** | ❌ |
+| Quest expiry / scheduling | Medium | Medium | **P2** | ❌ |
+| Admin quest editing | Low | Medium | **P2** | ❌ |
+| Onboarding flow | — | High | — | ✅ Done |
+| Quest history | — | Medium | — | ✅ Done |
+| Submission celebration | — | Medium | — | ✅ Done |
+| Settings (core) | — | Medium | — | ✅ Done |
+| Service role server-side | — | Critical | — | ✅ Done |
 
 ---
 
-## Tech Debt to Watch
+## Tech Debt
 
-| Area | Issue | When to Fix |
+| Area | Issue | When to fix |
 |---|---|---|
-| No React Query / SWR | Each hook re-fetches on mount with no cache | Phase 1 — add caching layer when data freshness matters more |
-| No integration tests | Only pure-logic tests exist; no Supabase query tests | Phase 0.6 — add before EAS build |
-| No error reporting (Sentry etc.) | Crashes are silent in production | Phase 0.5 |
-| Admin uses anon key for some queries | Mixed auth levels in admin; should be service-only | Phase 0.2 |
-| Leaderboard view is weekly-scoped only | No all-time, monthly, or friend-scoped ranking | Phase 4 |
-| `unique(user_id, quest_id)` DB constraint | Prevents re-attempting a rejected quest | Evaluate in Phase 1 |
+| Badge name/category drift | `seed.sql` vs `002_badge_unlock_trigger.sql` vs `award-xp` | **Now (P0)** |
+| Edge functions orphaned | No caller in admin, mobile, or DB webhooks | **Now (P0)** |
+| Duplicate `push_token` migrations | `004_push_token.sql` + `20250618120000_add_push_token_to_profiles.sql` | Phase 0.9 |
+| Migration docs incomplete | README stops at `001` | Phase 0.9 |
+| Env var naming drift | Admin uses `SUPABASE_SECRET_KEY`; docs may say `SERVICE_ROLE_KEY` | Phase 0.6 |
+| No React Query / SWR | Hooks re-fetch on every mount | Phase 1 |
+| No integration tests | Pure-logic tests only | Before first EAS production build |
+| No error reporting | Crashes silent in prod | Phase 0.5 |
+| Leaderboard weekly-only | No all-time, monthly, or friend scope | Phase 4 |
+| `unique(user_id, quest_id)` | Blocks re-attempt after rejection | Evaluate in Phase 1 |
+| No sponsored quests in seed | Can't test sponsor/redemption E2E | Phase 2.1 |
+
+---
+
+## Architecture Notes
+
+**Approval flow today:**
+
+```
+Mobile submit → completions (pending)
+  → Admin approve (direct status update)
+  → DB trigger: award XP + level
+  → DB trigger: check badges on total_xp update (misaligned with seed)
+  ✗ award-xp edge function (push + edge badges) — never called
+  ✗ generate-redemption-code — never called
+```
+
+**Target approval flow:**
+
+```
+Admin approve
+  → DB trigger: XP + level + badges (aligned seed)
+  → invoke award-xp: push notification + badge redundancy
+  → if sponsored: invoke generate-redemption-code
+  → mobile: show code + push "Quest approved!"
+```
 
 ---
 
@@ -197,4 +281,13 @@ Infrastructure and product moves for multi-city or multi-operator growth.
 
 ---
 
-*This roadmap is a living document. Update after each phase completes.*
+## Changelog
+
+| Date | Change |
+|---|---|
+| Jun 18, 2026 | Full rewrite after codebase audit. Marked onboarding, quest history, submission celebration, settings, push registration, admin session auth as done/partial. Added badge mismatch, award-xp wiring, map bug, EAS placeholders as P0 blockers. |
+| Jun 18, 2026 | Badge unlock aligned: 12/13 badges now award via `005_align_badge_unlock_logic.sql` + `award-xp` rewrite; Season Veteran deferred (requires seasons table). |
+
+---
+
+*Update this document when a phase item ships or when audit reveals drift.*

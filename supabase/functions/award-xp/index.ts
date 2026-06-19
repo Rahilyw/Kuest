@@ -1,13 +1,14 @@
 import { withSupabase } from 'npm:@supabase/server'
 
+// Badge rules mirror 005_align_badge_unlock_logic.sql exactly.
+// Keep both in sync when adding new badges.
 async function checkAndAwardBadges(userId: string, supabaseAdmin: any) {
-  const [{ data: profile }, { data: earnedRows }, { data: allBadges }] = await Promise.all([
-    supabaseAdmin.from('profiles').select('total_xp').eq('id', userId).single(),
+  const [{ data: earnedRows }, { data: allBadges }] = await Promise.all([
     supabaseAdmin.from('user_badges').select('badge_id').eq('user_id', userId),
     supabaseAdmin.from('badges').select('id, name'),
   ])
 
-  if (!profile || !allBadges) return
+  if (!allBadges) return
 
   const earnedIds = new Set((earnedRows ?? []).map((r: any) => r.badge_id))
   const unearnedBadges = allBadges.filter((b: any) => !earnedIds.has(b.id))
@@ -15,36 +16,73 @@ async function checkAndAwardBadges(userId: string, supabaseAdmin: any) {
 
   const { data: completions } = await supabaseAdmin
     .from('completions')
-    .select('quest:quests(category)')
+    .select('completed_at, quest:quests(category)')
     .eq('user_id', userId)
     .eq('status', 'approved')
 
-  const totalCompletions = completions?.length ?? 0
+  const rows = completions ?? []
+  const totalCompletions = rows.length
 
+  // Per-category counts
   const categoryCounts: Record<string, number> = {}
-  for (const c of completions ?? []) {
+  for (const c of rows) {
     const cat = c.quest?.category
     if (cat) categoryCounts[cat] = (categoryCounts[cat] ?? 0) + 1
   }
 
-  const totalXp: number = profile.total_xp
+  // Explorer: at least 1 in each of the 5 core categories
+  const CORE_CATEGORIES = ['fitness', 'social', 'food', 'community', 'nature']
+  const isExplorer = CORE_CATEGORIES.every(cat => (categoryCounts[cat] ?? 0) >= 1)
+
+  // Early Bird: any completion before 8am Victoria time (UTC-8 approximation)
+  const isEarlyBird = rows.some(c => {
+    if (!c.completed_at) return false
+    const d = new Date(c.completed_at)
+    const localHour = (d.getUTCHours() - 8 + 24) % 24
+    return localHour < 8
+  })
+
+  // Weekend Warrior: 3+ completions on Sat/Sun within the same Sat–Sun pair.
+  // Normalise Sunday → previous Saturday so both days share one group key.
+  const weekendCounts: Record<string, number> = {}
+  for (const c of rows) {
+    if (!c.completed_at) continue
+    const d = new Date(new Date(c.completed_at).getTime() - 8 * 3600 * 1000) // UTC-8
+    const dow = d.getUTCDay() // 0=Sun, 6=Sat
+    if (dow !== 0 && dow !== 6) continue
+    if (dow === 0) d.setUTCDate(d.getUTCDate() - 1) // shift Sun → Sat
+    const key = d.toISOString().slice(0, 10)
+    weekendCounts[key] = (weekendCounts[key] ?? 0) + 1
+  }
+  const isWeekendWarrior = Object.values(weekendCounts).some(n => n >= 3)
+
+  // Top 10: check the leaderboard view
+  let isTop10 = false
+  const { data: top10Rows } = await supabaseAdmin
+    .from('leaderboard')
+    .select('user_id')
+    .order('weekly_xp', { ascending: false })
+    .limit(10)
+  if (top10Rows) {
+    isTop10 = top10Rows.some((row: any) => row.user_id === userId)
+  }
 
   const conditionMet = (name: string): boolean => {
     switch (name) {
-      case 'First Quest':     return totalCompletions >= 1
-      case 'Explorer':        return totalCompletions >= 5
-      case 'Adventurer':      return totalCompletions >= 10
-      case 'Quest Master':    return totalCompletions >= 25
-      case 'Legend':          return totalCompletions >= 50
-      case 'Century':         return totalCompletions >= 100
-      case 'XP Rookie':       return totalXp >= 100
-      case 'XP Hunter':       return totalXp >= 500
-      case 'XP Warrior':      return totalXp >= 1000
-      case 'XP Elite':        return totalXp >= 5000
-      case 'Outdoor Champ':   return (categoryCounts['outdoor'] ?? 0) >= 5
-      case 'Foodie':          return (categoryCounts['food'] ?? 0) >= 5
-      case 'Culture Vulture': return (categoryCounts['culture'] ?? 0) >= 5
-      default:                return false
+      case 'First Quest':        return totalCompletions >= 1
+      case 'Getting Warmed Up':  return totalCompletions >= 5
+      case 'Local Hero':         return totalCompletions >= 10
+      case 'Explorer':           return isExplorer
+      case 'Fitness Fanatic':    return (categoryCounts['fitness'] ?? 0) >= 3
+      case 'Social Butterfly':   return (categoryCounts['social'] ?? 0) >= 3
+      case 'Foodie':             return (categoryCounts['food'] ?? 0) >= 3
+      case 'Community Champion': return (categoryCounts['community'] ?? 0) >= 3
+      case 'Nature Lover':       return (categoryCounts['nature'] ?? 0) >= 3
+      case 'Early Bird':         return isEarlyBird
+      case 'Weekend Warrior':    return isWeekendWarrior
+      case 'Top 10':             return isTop10
+      // Season Veteran: requires seasons table; not yet implemented
+      default:                   return false
     }
   }
 

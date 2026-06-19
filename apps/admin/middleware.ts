@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { isAdminEmail } from '@/lib/admin-auth'
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
@@ -27,9 +28,30 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user && request.nextUrl.pathname !== '/login') {
+  const { pathname } = request.nextUrl
+
+  if (!user) {
+    if (pathname !== '/login') {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+    return supabaseResponse
+  }
+
+  // Authenticated but not an allowed admin — redirect to login with error
+  if (!isAdminEmail(user.email)) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    url.searchParams.set('error', 'access_denied')
+    return NextResponse.redirect(url)
+  }
+
+  // Authenticated admin visiting /login → send to dashboard
+  if (pathname === '/login') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/'
+    url.searchParams.delete('error')
     return NextResponse.redirect(url)
   }
 
@@ -37,5 +59,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|login).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }

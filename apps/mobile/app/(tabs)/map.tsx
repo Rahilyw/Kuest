@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native'
 import MapView, { Marker, Circle } from 'react-native-maps'
 import { useRouter } from 'expo-router'
@@ -22,7 +23,7 @@ export default function QuestMap() {
         showsUserLocation
       >
         {quests.map((quest) => (
-          <React.Fragment key={quest.id}>
+          <Fragment key={quest.id}>
             <Marker
               coordinate={{ latitude: quest.lat, longitude: quest.lng }}
               pinColor={CATEGORY_COLORS[quest.category]}
@@ -37,7 +38,7 @@ export default function QuestMap() {
               strokeColor={`${CATEGORY_COLORS[quest.category]}66`}
               strokeWidth={1}
             />
-          </React.Fragment>
+          </Fragment>
         ))}
       </MapView>
     </View>
