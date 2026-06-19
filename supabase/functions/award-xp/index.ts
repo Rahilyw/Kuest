@@ -76,6 +76,29 @@ export default {
     // XP is awarded by the on_completion_approved DB trigger.
     await checkAndAwardBadges(completion.user_id, ctx.supabaseAdmin)
 
+    const { data: profileRow } = await ctx.supabaseAdmin
+      .from('profiles')
+      .select('push_token, username')
+      .eq('id', completion.user_id)
+      .single()
+
+    if (profileRow?.push_token) {
+      try {
+        await fetch('https://exp.host/--/api/v2/push/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: profileRow.push_token,
+            title: 'Quest Approved! 🎉',
+            body: `Your submission was approved. +${completion.quest.xp_reward} XP earned!`,
+            sound: 'default',
+          }),
+        })
+      } catch (err) {
+        console.error('Push notification failed:', err)
+      }
+    }
+
     return Response.json({ ok: true })
   }),
 }

@@ -1,16 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-
-interface Quest {
-  id: string
-  title: string
-  category: string
-  xp_reward: number
-  is_sponsored: boolean
-  sponsor_name: string | null
-  status: string
-}
+import { createQuest, getQuests, toggleQuestStatus, type Quest } from './actions'
 
 export default function QuestsPage() {
   const [quests, setQuests] = useState<Quest[]>([])
@@ -22,25 +12,17 @@ export default function QuestsPage() {
   })
 
   useEffect(() => {
-    supabase.from('quests').select('*').order('created_at', { ascending: false })
-      .then(({ data }) => setQuests((data as Quest[]) ?? []))
+    getQuests().then(setQuests)
   }, [])
 
   async function handleCreate() {
-    const { data } = await supabase.from('quests').insert({
-      ...form,
-      lat: parseFloat(form.lat),
-      lng: parseFloat(form.lng),
-      radius_meters: parseInt(form.radius_meters),
-      xp_reward: parseInt(form.xp_reward),
-    }).select().single()
-    if (data) setQuests((prev) => [data as Quest, ...prev])
+    const data = await createQuest(form)
+    if (data) setQuests((prev) => [data, ...prev])
     setShowForm(false)
   }
 
-  async function toggleStatus(id: string, current: string) {
-    const next = current === 'active' ? 'inactive' : 'active'
-    await supabase.from('quests').update({ status: next }).eq('id', id)
+  async function handleToggleStatus(id: string, current: string) {
+    const next = await toggleQuestStatus(id, current)
     setQuests((prev) => prev.map((q) => (q.id === id ? { ...q, status: next } : q)))
   }
 
@@ -109,7 +91,7 @@ export default function QuestsPage() {
               <td style={{ padding: '12px 16px' }}>{q.is_sponsored ? `⭐ ${q.sponsor_name}` : '—'}</td>
               <td style={{ padding: '12px 16px' }}>
                 <button
-                  onClick={() => toggleStatus(q.id, q.status)}
+                  onClick={() => handleToggleStatus(q.id, q.status)}
                   style={{
                     background: q.status === 'active' ? '#22C55E22' : '#64748B22',
                     color: q.status === 'active' ? '#22C55E' : '#64748B',
