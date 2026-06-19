@@ -1,13 +1,30 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Stack, useRouter, useSegments } from 'expo-router'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useAuth } from '@/hooks/useAuth'
 import { registerForPushNotifications } from '@/lib/notifications'
+import { hasCompletedOnboarding } from '@/lib/onboarding'
 
 export default function RootLayout() {
   const { session, loading } = useAuth()
   const router = useRouter()
   const segments = useSegments()
+  const [onboardingChecked, setOnboardingChecked] = useState(false)
+  const [hasOnboarded, setHasOnboarded] = useState(false)
+
+  useEffect(() => {
+    hasCompletedOnboarding().then((complete) => {
+      setHasOnboarded(complete)
+      setOnboardingChecked(true)
+    })
+  }, [])
+
+  useEffect(() => {
+    const inOnboarding = segments[0] === 'onboarding'
+    if (!inOnboarding && onboardingChecked) {
+      hasCompletedOnboarding().then(setHasOnboarded)
+    }
+  }, [segments[0], onboardingChecked])
 
   useEffect(() => {
     if (!session?.user.id) return
@@ -15,20 +32,27 @@ export default function RootLayout() {
   }, [session?.user.id])
 
   useEffect(() => {
-    if (loading) return
+    if (loading || !onboardingChecked) return
 
     const inAuthGroup = segments[0] === '(auth)'
+    const inOnboarding = segments[0] === 'onboarding'
 
-    if (!session && !inAuthGroup) {
+    if (!hasOnboarded && !inOnboarding) {
+      router.replace('/onboarding')
+      return
+    }
+
+    if (hasOnboarded && !session && !inAuthGroup && !inOnboarding) {
       router.replace('/(auth)/sign-in')
     } else if (session && inAuthGroup) {
       router.replace('/(tabs)')
     }
-  }, [session, loading])
+  }, [session, loading, onboardingChecked, hasOnboarded, segments])
 
   return (
     <SafeAreaProvider>
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
         <Stack.Screen name="(auth)" />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="quest/[id]" options={{ presentation: 'card' }} />

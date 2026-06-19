@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
 import { supabase } from '@/lib/supabase'
+import { getOnboardingCity } from '@/lib/onboarding'
 
 export default function SignUp() {
   const router = useRouter()
@@ -23,10 +24,11 @@ export default function SignUp() {
       return
     }
     if (data.user) {
+      const city = await getOnboardingCity()
       await supabase.from('profiles').insert({
         id: data.user.id,
         username: username.trim().toLowerCase(),
-        city: 'Victoria, BC',
+        city,
         total_xp: 0,
         level: 1,
       })
