@@ -55,6 +55,7 @@ export interface UserProfile {
   total_xp: number
   level: number
   avatar_url: string | null
+  push_token: string | null
   created_at: string
 }
 
@@ -72,7 +73,7 @@ export type Database = {
     Tables: {
       quests: { Row: Quest; Insert: Omit<Quest, 'id' | 'created_at'>; Update: Partial<Quest> }
       completions: { Row: Completion; Insert: Omit<Completion, 'id'>; Update: Partial<Completion> }
-      profiles: { Row: UserProfile; Insert: Omit<UserProfile, 'created_at'>; Update: Partial<UserProfile> }
+      profiles: { Row: UserProfile; Insert: Omit<UserProfile, 'created_at' | 'push_token'> & { push_token?: string | null }; Update: Partial<UserProfile> }
       badges: { Row: Badge; Insert: Omit<Badge, 'id'>; Update: Partial<Badge> }
       user_badges: { Row: UserBadge; Insert: UserBadge; Update: never }
     }

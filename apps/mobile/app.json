@@ -33,6 +33,13 @@
       [
         "expo-camera",
         { "cameraPermission": "Kuest uses your camera for quest proof photos." }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#6366F1"
+        }
       ]
     ]
   }

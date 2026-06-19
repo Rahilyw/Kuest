@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native'
+import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import { useAuth } from '@/hooks/useAuth'
@@ -14,6 +15,7 @@ import type { UserBadge } from '@/lib/types'
 
 export default function Profile() {
   const insets = useSafeAreaInsets()
+  const router = useRouter()
   const { profile, signOut } = useAuth()
   const [badges, setBadges] = useState<UserBadge[]>([])
   const [completionCount, setCompletionCount] = useState(0)
@@ -41,7 +43,7 @@ export default function Profile() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Header with settings gear */}
       <View style={[styles.header, { paddingTop: insets.top + 16 }]}>
-        <TouchableOpacity style={styles.settingsBtn} activeOpacity={0.8}>
+        <TouchableOpacity style={styles.settingsBtn} activeOpacity={0.8} onPress={() => router.push('/settings')}>
           <Ionicons name="settings-outline" size={22} color={COLORS.textMuted} />
         </TouchableOpacity>
 

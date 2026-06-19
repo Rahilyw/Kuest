@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
+import { clearPushToken } from '@/lib/notifications'
 import type { UserProfile } from '@/lib/types'
 
 export function useAuth() {
@@ -35,6 +36,9 @@ export function useAuth() {
   }
 
   async function signOut() {
+    if (session?.user.id) {
+      await clearPushToken(session.user.id)
+    }
     await supabase.auth.signOut()
   }
 

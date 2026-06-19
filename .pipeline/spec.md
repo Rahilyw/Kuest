@@ -1,134 +1,207 @@
-# UI/UX Overhaul Spec — Kuest Mobile App
+# Settings Screen Spec
+
+## Overview
+Wire up the existing settings gear button in the Profile tab to navigate to a new full settings screen. The settings screen exposes Account info (read-only), Notification toggles (visual only — no persistence yet), About info, and a Danger Zone with a destructive Sign Out action. The screen is registered with the root Stack with `headerShown: false` and `presentation: 'card'`.
 
 ## Open Questions
-
-None
-
-## Decisions (resolved before coding)
-
-1. **Icon library**: ✅ Use `@expo/vector-icons` (Ionicons) for tab bar icons and UI glyphs. Existing emoji-based category icons untouched.
-2. **Safe area handling**: ✅ Add `react-native-safe-area-context` as a new dependency. Use `useSafeAreaInsets()` instead of hardcoded `paddingTop: 60`.
-3. **Featured quest data**: ✅ Derive client-side as highest-XP active sponsored quest from existing `quests` list. No schema change, no new fetch.
-4. **Greeting copy**: ✅ Import `useAuth` into `index.tsx` for personalised greeting and level chip. Read-only, no new auth logic.
+None.
 
 ## Files
 
 ### Modify
-- `apps/mobile/lib/constants.ts` — Add a `COLORS` palette object (semantic tokens: bg, surface, surfaceElevated, border, textPrimary, textSecondary, textMuted, accent, accentSoft, warning, success, sponsor) and a `SPACING` / `RADIUS` scale. Keep existing exports intact (CATEGORY_COLORS, CATEGORY_ICONS, XP_LEVELS, CITY, helpers) for backward compatibility.
-- `apps/mobile/app/(tabs)/_layout.tsx` — Add Ionicons tab icons (filled when active, outline when inactive), increase tab bar height, add subtle top border using new `COLORS.border`, set tab label font weight.
-- `apps/mobile/app/(tabs)/index.tsx` — Full redesign: greeting header with avatar circle + level chip, compact XP progress strip, optional "Featured Quest" hero card, horizontally scrollable category chip row (with counts), section header "Active Quests" with count, FlatList with empty state and pull-to-refresh, loading skeleton state.
-- `apps/mobile/app/(tabs)/leaderboard.tsx` — Polish header to match dashboard typography, redesign "your rank" card with avatar circle and delta arrow placeholder, add medal emoji (🥇🥈🥉) for top 3 rows, alternate row background subtly, empty state.
-- `apps/mobile/app/(tabs)/profile.tsx` — Restructure header with larger avatar, settings gear icon (top-right), level chip overlay on avatar, group stats into a cleaner card with vertical dividers, add a section header style consistent with dashboard, polish sign-out button.
-- `apps/mobile/components/QuestCard.tsx` — Add subtle border, distance placeholder pill (uses `radius_meters` label only — no geo math added), category color accent stripe on the left edge, improved sponsor pill styling, press-down scale feedback via `activeOpacity` + `transform`.
-- `apps/mobile/components/XPBar.tsx` — Add level-up gradient-feel using two stacked Views (no new dep), add small XP numeric label (e.g. `1,240 / 2,000 XP`), thicker track (10px), rounded caps, soft glow effect via shadow.
-- `apps/mobile/components/BadgeGrid.tsx` — Improve empty state with icon + 2-line copy, add locked/earned visual distinction via opacity convention (rendered as-is for earned), tighter grid with consistent aspect ratio.
+- `apps/mobile/app/(tabs)/profile.tsx` — Add `useRouter` import, instantiate `const router = useRouter()`, and add `onPress={() => router.push('/settings')}` to the existing `settingsBtn` TouchableOpacity (currently at line 44, no onPress).
+- `apps/mobile/app/_layout.tsx` — Add `<Stack.Screen name="settings" options={{ presentation: 'card', headerShown: false }} />` inside the existing Stack, alongside the other Stack.Screen entries.
 
 ### Create
-- `apps/mobile/components/SectionHeader.tsx` — Reusable section header (title + optional trailing text/count).
-- `apps/mobile/components/CategoryChip.tsx` — Extracted chip component used by the dashboard category row.
-- `apps/mobile/components/EmptyState.tsx` — Generic empty-state component (icon, title, subtitle, optional CTA).
-- `apps/mobile/components/Avatar.tsx` — Avatar circle with initial fallback. Accepts `username`, optional `uri`, and `size`.
-- `apps/mobile/components/LevelChip.tsx` — Small pill showing `Lv N` with accent background.
-- `apps/mobile/components/QuestCardSkeleton.tsx` — Static skeleton placeholder for the loading state (no animation lib needed).
+- `apps/mobile/app/settings.tsx` — New full settings screen with Account, Notifications, About, and Danger Zone sections.
 
 ## Interfaces
 
-```typescript
-// lib/constants.ts — additions
-export const COLORS = {
-  bg: '#0B1120',
-  surface: '#1E293B',
-  surfaceElevated: '#273449',
-  border: '#1E293B',
-  textPrimary: '#F1F5F9',
-  textSecondary: '#94A3B8',
-  textMuted: '#64748B',
-  accent: '#6366F1',
-  accentSoft: '#312E81',
-  accentText: '#A5B4FC',
-  warning: '#F59E0B',
-  success: '#22C55E',
-  sponsor: '#F59E0B',
-} as const
-
-export const SPACING = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24 } as const
-export const RADIUS = { sm: 8, md: 12, lg: 16, xl: 20, pill: 999 } as const
-
-// components/SectionHeader.tsx
-interface SectionHeaderProps {
-  title: string
-  trailing?: string
-  style?: ViewStyle
-}
-export function SectionHeader(props: SectionHeaderProps): JSX.Element
-
-// components/CategoryChip.tsx
-interface CategoryChipProps {
-  label: string
-  active: boolean
-  onPress: () => void
-  count?: number
-}
-export function CategoryChip(props: CategoryChipProps): JSX.Element
-
-// components/EmptyState.tsx
-interface EmptyStateProps {
-  icon: string                 // emoji
-  title: string
-  subtitle?: string
-  ctaLabel?: string
-  onCtaPress?: () => void
-}
-export function EmptyState(props: EmptyStateProps): JSX.Element
-
-// components/Avatar.tsx
-interface AvatarProps {
-  username: string
-  uri?: string | null
-  size?: number                // default 48
-}
-export function Avatar(props: AvatarProps): JSX.Element
-
-// components/LevelChip.tsx
-interface LevelChipProps {
-  level: number
-  compact?: boolean
-}
-export function LevelChip(props: LevelChipProps): JSX.Element
-
-// components/QuestCardSkeleton.tsx
-export function QuestCardSkeleton(): JSX.Element
-
-// QuestCard.tsx — no signature change
-// XPBar.tsx — no signature change
-// BadgeGrid.tsx — no signature change
+### `apps/mobile/app/settings.tsx`
+```tsx
+export default function Settings(): JSX.Element
 ```
 
-## Edge Cases
+Internal local state:
+```tsx
+const [questNearby, setQuestNearby] = useState<boolean>(true)
+const [weeklyDigest, setWeeklyDigest] = useState<boolean>(true)
+```
 
-- **No profile yet** (`useAuth().profile === null` on dashboard): greeting falls back to "Welcome to Kuest" — do NOT crash, do NOT render avatar/level chip.
-- **Empty quests array**: render `EmptyState` with copy "No quests here yet" + subtitle "Try a different category or check back soon." Do not render the FlatList wrapper.
-- **Loading state**: render 3 `QuestCardSkeleton` rows inside the list area, NOT the existing centered "Loading quests…" text.
-- **Featured quest absent** (no sponsored active quests): silently omit the hero block — do not show an empty placeholder.
-- **Username starts with non-letter** (Avatar initial fallback): use `username[0].toUpperCase()`; if `username` is empty string, render '?'.
-- **XPBar at max level**: progress bar shows 100% filled and numeric label reads "Max level".
-- **Long quest titles / descriptions**: keep existing `numberOfLines={1}` / `numberOfLines={2}` on QuestCard.
-- **Long usernames in leaderboard**: ellipsize with `numberOfLines={1}` on the username Text.
-- **Top 3 medal logic**: only show 🥇/🥈/🥉 when `rank === 1 | 2 | 3`; for everyone else show the `#N` text in the existing style.
-- **Pull-to-refresh**: must call existing `useQuests().refetch`; spinner color = `COLORS.accent`.
-- **Category chips**: `count` is optional and only rendered when defined; the "All" chip gets the total length, each category chip gets `quests.filter(q => q.category === value).length` computed against the UNFILTERED quest list — do not refetch. (If this requires a second query and the user does not want it, render WITHOUT counts. This is an implementation detail; default to no counts to avoid an extra fetch.)
-- **Tab icons** (if approved per Open Question 1): active state uses filled Ionicons variant + `COLORS.accent`; inactive uses outline variant + `COLORS.textMuted`.
-- **Safe area**: use `useSafeAreaInsets()` from `react-native-safe-area-context` (new dependency approved). Replace existing `paddingTop: 60` usages with `insets.top + 16` for a proper device-aware offset. Wrap `apps/mobile/app/_layout.tsx` in `<SafeAreaProvider>` if not already present.
-- **No regressions**: do not change navigation paths, hooks, data fetching, or types beyond what is listed.
+Hooks used:
+- `useRouter()` from `expo-router` — for back navigation and post-signout redirect
+- `useSafeAreaInsets()` from `react-native-safe-area-context` — for top padding under the status bar
+- `useAuth()` from `@/hooks/useAuth` — destructure `{ session, profile, signOut }`
+
+Sign-out handler:
+```tsx
+async function handleSignOut() {
+  await signOut()
+  router.replace('/(auth)/sign-in')
+}
+```
+
+Imports required:
+```tsx
+import { useState } from 'react'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native'
+import { useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
+import { useAuth } from '@/hooks/useAuth'
+import { SectionHeader } from '@/components/SectionHeader'
+import { COLORS, SPACING, RADIUS } from '@/lib/constants'
+```
+
+### `apps/mobile/app/(tabs)/profile.tsx`
+Add to imports:
+```ts
+import { useRouter } from 'expo-router'
+```
+Inside the `Profile` component body, alongside existing hooks:
+```ts
+const router = useRouter()
+```
+Update the existing TouchableOpacity at line 44:
+```tsx
+<TouchableOpacity
+  style={styles.settingsBtn}
+  activeOpacity={0.8}
+  onPress={() => router.push('/settings')}
+>
+```
+
+### `apps/mobile/app/_layout.tsx`
+Add inside `<Stack screenOptions={{ headerShown: false }}>` after the existing `submit/[questId]` entry:
+```tsx
+<Stack.Screen name="settings" options={{ presentation: 'card', headerShown: false }} />
+```
+
+## Settings Screen Structure
+
+Root layout:
+- Outer container: `View` with `flex: 1, backgroundColor: COLORS.bg`.
+- Absolute-positioned back-button pill (top-left, top: `insets.top + 12`, left: `SPACING.lg`, zIndex 10) — pattern copied from `apps/mobile/app/quest/[id].tsx`:
+  ```tsx
+  <TouchableOpacity style={styles.back} onPress={() => router.back()} activeOpacity={0.8}>
+    <View style={styles.backPill}>
+      <Text style={[styles.backText, { color: COLORS.accent }]}>←</Text>
+    </View>
+  </TouchableOpacity>
+  ```
+- Screen title "Settings" centered horizontally at the top, top padding `insets.top + 18`, fontSize 22, fontWeight '700', color `COLORS.textPrimary`, textAlign 'center'.
+- `ScrollView` with `style={{ flex: 1 }}` and `contentContainerStyle={{ padding: SPACING.md, paddingTop: SPACING.lg, paddingBottom: 80 }}`. The ScrollView starts below the absolute back button and title; place the title inside an outer View that the ScrollView sits below, or give the ScrollView top padding sufficient to clear the title (`insets.top + 64`).
+
+### Section card pattern
+Each section is:
+1. A `<SectionHeader title="..." />` above the card.
+2. A single rounded card wrapping all rows:
+   ```ts
+   sectionCard: {
+     backgroundColor: COLORS.surface,
+     borderRadius: RADIUS.md,
+     borderWidth: 1,
+     borderColor: COLORS.border,
+     overflow: 'hidden',
+     marginBottom: SPACING.lg,
+   }
+   ```
+3. Rows: each row is a horizontal flex row, height 52, padded `paddingHorizontal: SPACING.md`. Every row except the last in the card gets `borderBottomWidth: 1, borderBottomColor: COLORS.border`.
+   ```ts
+   row: {
+     flexDirection: 'row',
+     alignItems: 'center',
+     justifyContent: 'space-between',
+     paddingHorizontal: SPACING.md,
+     height: 52,
+   }
+   ```
+4. Row label: `color: COLORS.textPrimary, fontSize: 15, fontWeight: '500'`.
+5. Row right-side value (read-only text): `color: COLORS.textMuted, fontSize: 14, flexShrink: 1, textAlign: 'right', marginLeft: SPACING.md`.
+
+### ACCOUNT section
+`<SectionHeader title="Account" />`
+Rows inside one `sectionCard`:
+1. Email — label "Email", right `<Text>{session?.user?.email ?? ''}</Text>` (muted, right-aligned).
+2. Username — label "Username", right `<Text>{profile?.username ? '@' + profile.username : ''}</Text>` (muted).
+3. City — label "City", right `<Text>{profile?.city ?? ''}</Text>` (muted).
+
+All read-only. No chevron, no Switch.
+
+### NOTIFICATIONS section
+`<SectionHeader title="Notifications" />`
+Rows inside one `sectionCard`:
+1. "Quest Nearby" — right element is a `Switch`:
+   ```tsx
+   <Switch
+     value={questNearby}
+     onValueChange={setQuestNearby}
+     thumbColor="#FFFFFF"
+     trackColor={{ false: '#CBD5E1', true: COLORS.accent }}
+     ios_backgroundColor="#CBD5E1"
+   />
+   ```
+2. "Weekly Digest" — right element is the same `Switch` bound to `weeklyDigest` / `setWeeklyDigest`.
+
+### ABOUT section
+`<SectionHeader title="About" />`
+Rows inside one `sectionCard`:
+1. Version — label "Version", right `<Text>1.0.0</Text>` (muted).
+2. Privacy Policy — whole row is a `TouchableOpacity` with `activeOpacity={0.7}` and `onPress={() => {}}` (no-op). Right side: `<Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />`.
+3. Terms of Service — same pattern as Privacy Policy, no-op onPress, chevron-forward icon.
+
+### DANGER ZONE section
+`<SectionHeader title="Danger Zone" />`
+Single-row `sectionCard` containing one `TouchableOpacity`:
+```tsx
+<TouchableOpacity
+  style={styles.signOutRow}
+  onPress={handleSignOut}
+  activeOpacity={0.7}
+>
+  <Text style={styles.signOutText}>Sign Out</Text>
+</TouchableOpacity>
+```
+Styles:
+```ts
+signOutRow: { height: 52, alignItems: 'center', justifyContent: 'center' },
+signOutText: { color: '#EF4444', fontSize: 15, fontWeight: '600' },
+```
+
+### Back-button pill styles (copy from quest/[id].tsx)
+```ts
+back: { position: 'absolute', top: 0, left: 0, zIndex: 10 },  // top offset applied inline via insets
+backPill: {
+  backgroundColor: 'rgba(255,255,255,0.9)',
+  borderRadius: 999,
+  width: 36,
+  height: 36,
+  alignItems: 'center',
+  justifyContent: 'center',
+  shadowColor: '#0F172A',
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.08,
+  shadowRadius: 6,
+  elevation: 3,
+},
+backText: { fontSize: 20, fontWeight: '700', lineHeight: 28 },
+```
+(The `back` container's `top` value is applied inline: `style={[styles.back, { top: insets.top + 12, left: SPACING.lg }]}`.)
+
+## Edge Cases
+- `session` or `profile` may be `null` momentarily — use optional chaining (`session?.user?.email`, `profile?.username`, `profile?.city`) and render an empty string fallback. Do not early-return `null`; the user must still be able to access Sign Out.
+- After `signOut()` resolves, `useAuth`'s auth-state listener will null out the session and the root `_layout.tsx` redirect effect will also trigger navigation to `/(auth)/sign-in`. The explicit `router.replace('/(auth)/sign-in')` is still called to make the transition immediate and avoid a flash of the settings screen on a null session.
+- Switch state is local-only and resets on unmount — intentional per the request (no persistence yet, no toast, no analytics).
+- Privacy Policy and Terms of Service onPress are intentional no-ops (`() => {}`) — do not link to URLs or call `Linking.openURL`.
+- Long email addresses must not overflow: right-side `<Text>` uses `flexShrink: 1, textAlign: 'right', marginLeft: SPACING.md` and `numberOfLines={1}`.
+- Back button sits above ScrollView content via absolute position + `zIndex: 10`. ScrollView's `contentContainerStyle.paddingTop` clears the back button + title.
+- Status bar safe area: top offset via `useSafeAreaInsets().top`, never hardcoded.
 
 ## Patterns to Follow
-
-- **Color usage**: Replace hardcoded hex values with the new `COLORS` tokens from `apps/mobile/lib/constants.ts`. Match the existing convention seen in `apps/mobile/components/QuestCard.tsx` of using `${color}22` for soft tinted backgrounds.
-- **StyleSheet structure**: Continue the inline `StyleSheet.create({...})` per-file pattern used in every existing screen and component (see `apps/mobile/app/(tabs)/profile.tsx`). Do NOT introduce a styling library.
-- **Component file layout**: Follow `apps/mobile/components/QuestCard.tsx` exactly — named `export function ComponentName`, props `interface Props` (or `ComponentNameProps`) above the function, styles below.
-- **TouchableOpacity feedback**: Match `apps/mobile/components/QuestCard.tsx` `activeOpacity={0.8}`.
-- **Dark theme palette**: Stay within the existing slate/indigo system (`#0F172A`, `#1E293B`, `#6366F1`, `#F1F5F9`, `#64748B`) — new `COLORS` tokens reuse these values verbatim plus a slightly deeper `bg` (`#0B1120`) for higher contrast.
-- **Category emoji icons**: Reuse `CATEGORY_ICONS` from `apps/mobile/lib/constants.ts` — do not redefine emoji mappings elsewhere.
-- **Header pattern**: The Profile header centering + 60px top padding (`apps/mobile/app/(tabs)/profile.tsx` lines 73-85) is the reference for header layout; mirror that vertical rhythm on the dashboard.
-- **Stat card pattern**: The Profile stats row (`apps/mobile/app/(tabs)/profile.tsx` line 86) is the reference for any horizontal stat group used in the new dashboard XP strip.
-- **New dependencies approved**: `@expo/vector-icons` (already bundled with Expo, no install needed) and `react-native-safe-area-context` (must be added to `package.json`). Do not add `react-native-reanimated`, `moti`, `react-native-svg`, or `linear-gradient`.
+- **Back-button pill**: Copy `back` / `backPill` / `backText` styles and the wrapping TouchableOpacity structure from `apps/mobile/app/quest/[id].tsx` (lines 28–32 for JSX, lines 87–101 for styles). Replace the category color with `COLORS.accent` for the arrow.
+- **SectionHeader usage**: Reuse the existing component at `apps/mobile/components/SectionHeader.tsx` exactly as used in `apps/mobile/app/(tabs)/profile.tsx` line 80 — pass only `title` (omit `trailing`).
+- **Glass card styling**: Mirror the `stats` card pattern in `apps/mobile/app/(tabs)/profile.tsx` (lines 112–121) — `backgroundColor: COLORS.surface`, `borderRadius: RADIUS.md` (use `md` per spec, not `lg`), `borderWidth: 1, borderColor: COLORS.border`.
+- **Sign-out flow**: Extend the pattern from `apps/mobile/app/(tabs)/profile.tsx` line 83 (`onPress={signOut}`) — call `await signOut()` then `router.replace('/(auth)/sign-in')`, mirroring the redirect target used in `apps/mobile/app/_layout.tsx` line 17.
+- **Imports order**: Follow `apps/mobile/app/(tabs)/profile.tsx` — React imports first, then `react-native`, then `expo-router`, then `react-native-safe-area-context`, then `@expo/vector-icons`, then `@/hooks/...`, then `@/components/...`, then `@/lib/constants`.
+- **StyleSheet placement**: `StyleSheet.create({...})` at the bottom of the file, same convention as `profile.tsx` and `quest/[id].tsx`.
+- **Stack.Screen registration**: Mirror the existing `quest/[id]` and `submit/[questId]` registrations in `apps/mobile/app/_layout.tsx` (lines 28–29).

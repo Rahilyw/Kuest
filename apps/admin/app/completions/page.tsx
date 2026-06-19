@@ -1,43 +1,20 @@
 'use client'
 import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
-
-interface Completion {
-  id: string
-  photo_url: string
-  lat: number
-  lng: number
-  completed_at: string
-  status: string
-  user_id: string
-  quest_id: string
-  profiles: { username: string } | null
-  quests: { title: string; xp_reward: number } | null
-}
+import { getPendingCompletions, updateCompletionStatus, type Completion } from './actions'
 
 export default function CompletionsQueue() {
   const [completions, setCompletions] = useState<Completion[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetchPending()
+    getPendingCompletions().then((data) => {
+      setCompletions(data)
+      setLoading(false)
+    })
   }, [])
 
-  async function fetchPending() {
-    const { data } = await supabase
-      .from('completions')
-      .select('*, profiles(username), quests(title, xp_reward)')
-      .eq('status', 'pending')
-      .order('completed_at', { ascending: true })
-    setCompletions((data as Completion[]) ?? [])
-    setLoading(false)
-  }
-
-  async function updateStatus(id: string, status: 'approved' | 'rejected') {
-    await supabase
-      .from('completions')
-      .update({ status, reviewed_at: new Date().toISOString() })
-      .eq('id', id)
+  async function handleUpdateStatus(id: string, status: 'approved' | 'rejected') {
+    await updateCompletionStatus(id, status)
     setCompletions((prev) => prev.filter((c) => c.id !== id))
   }
 
@@ -73,13 +50,13 @@ export default function CompletionsQueue() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               <button
-                onClick={() => updateStatus(c.id, 'approved')}
+                onClick={() => handleUpdateStatus(c.id, 'approved')}
                 style={{ background: '#22C55E', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer', fontWeight: 700 }}
               >
                 Approve
               </button>
               <button
-                onClick={() => updateStatus(c.id, 'rejected')}
+                onClick={() => handleUpdateStatus(c.id, 'rejected')}
                 style={{ background: '#EF4444', color: '#fff', border: 'none', borderRadius: 8, padding: '10px 20px', cursor: 'pointer', fontWeight: 700 }}
               >
                 Reject

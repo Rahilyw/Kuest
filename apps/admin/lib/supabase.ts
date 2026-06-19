@@ -1,13 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
+export { withSupabase } from '@supabase/server'
 
-// Admin client uses service role key — never expose this client-side
-export const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+const url = process.env.SUPABASE_URL!
 
-// Public client for client components
-export const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
+// Bypasses RLS — server-side only, never import in client components
+export const supabaseAdmin = createClient(url, process.env.SUPABASE_SECRET_KEY!)
+
+// Respects RLS — safe for server components that act on behalf of a user
+export const supabase = createClient(url, process.env.SUPABASE_PUBLISHABLE_KEY!)
