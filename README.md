@@ -1,6 +1,6 @@
-# Kuest
+# Quest!
 
-Real life, gamified. A weekly city challenge app.
+Real life, gamified. A weekly city challenge app for exploring your city.
 
 ## Structure
 

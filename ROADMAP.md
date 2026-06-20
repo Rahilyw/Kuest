@@ -1,4 +1,4 @@
-# Kuest — Product Roadmap
+# Quest! — Product Roadmap
 
 **Last updated:** June 18, 2026  
 **Stage:** MVP Complete → Pre-Launch Hardening

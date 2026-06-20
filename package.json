@@ -1,5 +1,5 @@
 {
-  "name": "kuest",
+  "name": "quest",
   "private": true,
   "workspaces": [
     "apps/mobile",

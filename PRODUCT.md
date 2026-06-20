@@ -6,13 +6,13 @@ product
 
 ## Users
 
-Urban residents aged 20-35 in mid-size walkable cities (pilot: Victoria, BC). They feel the gap between wanting more real-world connection and not knowing how to start. They already use gamified apps daily (Duolingo, Strava) and are comfortable with social proof, streaks, and leaderboards. They use Kuest on their phone outdoors: walking to a quest, standing at a location, or checking the leaderboard on Sunday night. Ambient light is variable; one-handed use is common; they are in motion or about to be.
+Urban residents aged 20-35 in mid-size walkable cities (pilot: Victoria, BC). They feel the gap between wanting more real-world connection and not knowing how to start. They already use gamified apps daily (Duolingo, Strava) and are comfortable with social proof, streaks, and leaderboards. They use Quest! on their phone outdoors: walking to a quest, standing at a location, or checking the leaderboard on Sunday night. Ambient light is variable; one-handed use is common; they are in motion or about to be.
 
 Secondary user: the admin operator (solo founder in the pilot). Uses the web dashboard at a desk to approve completions, manage quests, and review sponsor reports.
 
 ## Product Purpose
 
-Kuest turns a city into a game board. Players earn XP, badges, and leaderboard rank for doing things they would want to do anyway: running a trail, visiting a local cafe, helping at a community event, meeting a stranger. The product solves the cold-start problem of real-world social connection by giving people a reason to show up, a framework for repeat behavior, and a community to compete within. Success is measured by weekly active users who return after their first quest and local businesses who renew their sponsored quest.
+Quest! turns a city into a game board. Players earn XP, badges, and leaderboard rank for doing things they would want to do anyway: running a trail, visiting a local cafe, helping at a community event, meeting a stranger. The product solves the cold-start problem of real-world social connection by giving people a reason to show up, a framework for repeat behavior, and a community to compete within. Success is measured by weekly active users who return after their first quest and local businesses who renew their sponsored quest.
 
 ## Brand Personality
 
@@ -26,9 +26,9 @@ Early BeReal: raw social energy, anti-perfection, grounded in real moments. The 
 
 ## Anti-references
 
-- **Pokémon GO**: No AR overlays, neon fictional-world palettes, or creature-collecting aesthetics. Kuest rewards are real; the visual language must be too.
+- **Pokémon GO**: No AR overlays, neon fictional-world palettes, or creature-collecting aesthetics. Quest! rewards are real; the visual language must be too.
 - **Duolingo**: No cartoon mascots, confetti explosions, or gamification theater. Badges and XP should feel earned, not handed out like stickers.
-- **Strava**: No fitness-tracker data density, segment-obsessed leaderboards, or athlete-performance aesthetics. Kuest is for everyone going outside, not just people training.
+- **Strava**: No fitness-tracker data density, segment-obsessed leaderboards, or athlete-performance aesthetics. Quest! is for everyone going outside, not just people training.
 - **Generic loyalty apps**: No punch-card patterns, coupon-clipping UI, or "rewards points" visual language. The sponsored quest must feel like a real quest that happens to have a reward, not a marketing promotion dressed as a game.
 
 ## Design Principles

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
   "generatedAt": "2026-06-17T00:00:00Z",
-  "title": "Design System: Kuest",
+  "title": "Design System: Quest!",
   "extensions": {
     "colorMeta": {
       "after-hours-asphalt": { "role": "neutral", "displayName": "After-Hours Asphalt", "canonical": "#0B1120", "tonalRamp": ["#050810", "#0B1120", "#111a2e", "#1a2540", "#243050", "#2e3b60", "#3a4870", "#4d5d88"] },
@@ -21,7 +21,7 @@
       "harbour-teal":        { "role": "secondary", "displayName": "Harbour Teal",      "canonical": "#06B6D4", "tonalRamp": ["#164e63", "#155e75", "#0e7490", "#0891b2", "#06B6D4", "#22d3ee", "#67e8f9", "#a5f3fc"] }
     },
     "typographyMeta": {
-      "display":  { "displayName": "Display",  "purpose": "Kuest wordmark on auth screens only. Never inside the app." },
+      "display":  { "displayName": "Display",  "purpose": "Quest! wordmark on auth screens only. Never inside the app." },
       "title":    { "displayName": "Title",    "purpose": "One screen header per screen. Fog White, 800 weight." },
       "headline": { "displayName": "Headline", "purpose": "Quest card titles, section headings, quest detail titles." },
       "body":     { "displayName": "Body",     "purpose": "Quest descriptions, meta text. Max 60ch; truncate at 2 lines in cards." },
@@ -97,7 +97,7 @@
   ],
   "narrative": {
     "northStar": "The Night Market",
-    "overview": "Kuest runs at the hour when the city stops pretending and starts being itself. The visual system lives after dark: deep asphalt backgrounds, surfaces that read like wet concrete under sodium light, and a single indigo signal that only lights up when something has been genuinely earned. The Night Market does not glow for its own sake. Colour comes from the stalls, from the categories, from the proof photos players submit, not from the chrome of the interface.\n\nThe system is built around one rule nobody ever says out loud: the interface should make you feel like you are standing on a real street, not looking at a points app. That means restraint in decoration, weight in typography, and colour used the way a city uses neon: rarely, purposefully, and only on things that actually matter.",
+    "overview": "Quest! runs at the hour when the city stops pretending and starts being itself. The visual system lives after dark: deep asphalt backgrounds, surfaces that read like wet concrete under sodium light, and a single indigo signal that only lights up when something has been genuinely earned. The Night Market does not glow for its own sake. Colour comes from the stalls, from the categories, from the proof photos players submit, not from the chrome of the interface.\n\nThe system is built around one rule nobody ever says out loud: the interface should make you feel like you are standing on a real street, not looking at a points app. That means restraint in decoration, weight in typography, and colour used the way a city uses neon: rarely, purposefully, and only on things that actually matter.",
     "keyCharacteristics": [
       "Deep near-black background; surfaces step up by 4-6% lightness, never by hue shift",
       "One accent colour (Local Signal indigo) held in reserve for earned, interactive, and ranked moments only",

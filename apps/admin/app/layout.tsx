@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { AppShell } from './app-shell'
 
 export const metadata: Metadata = {
-  title: 'Kuest Admin',
+  title: 'Quest! Admin',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

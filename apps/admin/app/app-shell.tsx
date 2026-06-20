@@ -13,7 +13,7 @@ function Sidebar() {
   ]
   return (
     <nav style={{ width: 220, background: '#1E293B', padding: '32px 16px', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ fontSize: 22, fontWeight: 800, color: '#6366F1', marginBottom: 32 }}>Kuest Admin</div>
+      <div style={{ fontSize: 22, fontWeight: 800, color: '#6366F1', marginBottom: 32 }}>Quest! Admin</div>
       {links.map((l) => (
         <a
           key={l.href}

@@ -25,7 +25,7 @@ insert into quests (title, description, category, lat, lng, xp_reward) values
 
 -- Starter badges
 insert into badges (name, description, icon, unlock_condition) values
-('First Quest', 'Completed your first Kuest', '🌟', 'complete 1 quest'),
+('First Quest', 'Completed your first Quest!', '🌟', 'complete 1 quest'),
 ('Getting Warmed Up', 'Completed 5 quests', '🔥', 'complete 5 quests'),
 ('Local Hero', 'Completed 10 quests', '🏆', 'complete 10 quests'),
 ('Explorer', 'Completed a quest in every category', '🧭', 'complete 1 quest in each category'),

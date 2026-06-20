@@ -1,4 +1,4 @@
-# Kuest Architecture
+# Quest! Architecture
 
 Visual map of the codebase — a monorepo for a gamified city quest app with two clients and a Supabase backend.
 
@@ -6,7 +6,7 @@ Visual map of the codebase — a monorepo for a gamified city quest app with two
 
 ```mermaid
 flowchart TB
-    subgraph Monorepo["kuest (Yarn workspaces)"]
+    subgraph Monorepo["Quest! (Yarn workspaces)"]
         direction TB
         Mobile["apps/mobile<br/>Expo · React Native · Expo Router"]
         Admin["apps/admin<br/>Next.js 14 · port 3001"]
@@ -204,7 +204,7 @@ sequenceDiagram
 ## Folder tree
 
 ```
-Kuest/
+Quest!/
 ├── apps/
 │   ├── mobile/          Expo app (player-facing)
 │   │   ├── app/         Routes: auth, tabs, quest detail, submit

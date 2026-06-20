@@ -17,7 +17,7 @@ export async function signIn(formData: FormData) {
 
   if (!isAdminEmail(data.user?.email)) {
     await supabase.auth.signOut()
-    return { error: 'Access denied. Contact the Kuest team.' }
+    return { error: 'Access denied. Contact the Quest! team.' }
   }
 
   redirect('/')

@@ -20,12 +20,12 @@ export default function LoginForm({ initialError }: { initialError?: string }) {
   }
 
   const isAccessDenied =
-    error === 'Access denied. Contact the Kuest team.' ||
+    error === 'Access denied. Contact the Quest! team.' ||
     initialError === 'access_denied'
 
   const displayError =
     error === 'access_denied' || initialError === 'access_denied'
-      ? 'Access denied. Contact the Kuest team.'
+      ? 'Access denied. Contact the Quest! team.'
       : error
 
   return (
@@ -42,7 +42,7 @@ export default function LoginForm({ initialError }: { initialError?: string }) {
     >
       <div style={{ width: '100%', maxWidth: 400 }}>
         <div style={{ fontSize: 28, fontWeight: 800, color: '#6366F1', marginBottom: 8, textAlign: 'center' }}>
-          Kuest Admin
+          Quest! Admin
         </div>
         <p style={{ color: '#64748B', textAlign: 'center', marginBottom: 32 }}>Sign in to continue</p>
 

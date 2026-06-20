@@ -1,5 +1,5 @@
 ---
-name: Kuest
+name: Quest!
 description: Real life, gamified. A weekly city challenge app.
 colors:
   saltwater-sky: "#F0F9FF"
@@ -103,7 +103,7 @@ components:
     padding: "16px"
 ---
 
-# Design System: Kuest
+# Design System: Quest!
 
 ## 1. Overview
 
@@ -181,7 +181,7 @@ Unchanged from the prior system. System fonts, weight-driven hierarchy.
 
 ## 4. Elevation
 
-Kuest is flat at rest. Elevation comes from the Saltwater Sky background contrasting against Glass White surfaces; the visual read is "floating" without needing heavy shadows.
+Quest! is flat at rest. Elevation comes from the Saltwater Sky background contrasting against Glass White surfaces; the visual read is "floating" without needing heavy shadows.
 
 ### Shadow Vocabulary
 - **Card Glass** (`shadowColor: '#0F172A', shadowOffset: {0,6}, shadowOpacity: 0.07, shadowRadius: 16`): All cards, the XP bar container, badge tiles. Consistent; not decorative.
@@ -269,7 +269,7 @@ Compact indigo pill. Local Signal background, white text, 800 weight, Action Glo
 - **Don't** introduce confetti, completion animations, or XP counters before a submission is approved. The "Earned not given" principle is unchanged regardless of theme.
 - **Don't** use glassmorphism decoratively. The glass system is functional (surfaces lift off the sky bg) not aesthetic mood-setting. Every blur or tint should correspond to a real elevation or state difference.
 - **Don't** show shadows on resting list rows, section headers, or container views. Card Glass shadow is for interactive card surfaces only.
-- **Don't** use the AR neon palette of Pokémon GO. Kuest is light mode, not luminous-on-black.
+- **Don't** use the AR neon palette of Pokémon GO. Quest! is light mode, not luminous-on-black.
 - **Don't** use cartoon mascots, achievement sticker aesthetics, or Duolingo-style "you did it" full-screen moments.
 - **Don't** replicate Strava's fitness-data density. One XP number. One level. No charts, no segment breakdowns.
 - **Don't** design sponsor quests as coupons. Design them as quests that happen to carry a reward.
