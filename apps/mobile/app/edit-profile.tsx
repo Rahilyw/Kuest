@@ -1,0 +1,217 @@
+import { useState } from 'react'
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  ScrollView,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+} from 'react-native'
+import { useRouter } from 'expo-router'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useAuth } from '@/hooks/useAuth'
+import { supabase } from '@/lib/supabase'
+import { SectionHeader } from '@/components/SectionHeader'
+import { COLORS, SPACING, RADIUS } from '@/lib/constants'
+import { PILOT_CITIES } from '@/lib/onboarding'
+
+export default function EditProfile() {
+  const insets = useSafeAreaInsets()
+  const router = useRouter()
+  const { profile, refreshProfile } = useAuth()
+  const [username, setUsername] = useState(profile?.username ?? '')
+  const [city, setCity] = useState(profile?.city ?? PILOT_CITIES[0])
+  const [saving, setSaving] = useState(false)
+
+  if (!profile) return null
+
+  async function handleSave() {
+    const trimmed = username.trim().toLowerCase()
+    if (!trimmed) {
+      Alert.alert('Error', 'Username is required')
+      return
+    }
+    if (!/^[a-z0-9_]{3,20}$/.test(trimmed)) {
+      Alert.alert('Error', 'Username must be 3–20 characters: letters, numbers, or underscores')
+      return
+    }
+
+    setSaving(true)
+    const { error } = await supabase
+      .from('profiles')
+      .update({ username: trimmed, city })
+      .eq('id', profile.id)
+
+    setSaving(false)
+
+    if (error) {
+      if (error.code === '23505') {
+        Alert.alert('Error', 'That username is already taken')
+      } else {
+        Alert.alert('Error', error.message)
+      }
+      return
+    }
+
+    await refreshProfile()
+    router.back()
+  }
+
+  return (
+    <View style={styles.container}>
+      <TouchableOpacity
+        style={[styles.back, { top: insets.top + 12, left: SPACING.lg }]}
+        onPress={() => router.back()}
+        activeOpacity={0.8}
+      >
+        <View style={styles.backPill}>
+          <Text style={[styles.backText, { color: COLORS.accent }]}>←</Text>
+        </View>
+      </TouchableOpacity>
+
+      <Text style={[styles.screenTitle, { paddingTop: insets.top + 18 }]}>Edit Profile</Text>
+
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top + 64 }]}
+        keyboardShouldPersistTaps="handled"
+      >
+        <SectionHeader title="Public Info" />
+        <View style={styles.sectionCard}>
+          <View style={styles.field}>
+            <Text style={styles.fieldLabel}>Username</Text>
+            <TextInput
+              style={styles.input}
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+              autoCorrect={false}
+              placeholder="yourname"
+              placeholderTextColor={COLORS.textMuted}
+            />
+            <Text style={styles.fieldHint}>Shown as @{username.trim() || 'username'}</Text>
+          </View>
+        </View>
+
+        <SectionHeader title="City" />
+        <View style={styles.sectionCard}>
+          {PILOT_CITIES.map((option) => {
+            const selected = city === option
+            return (
+              <TouchableOpacity
+                key={option}
+                style={[styles.cityRow, selected && styles.cityRowSelected]}
+                onPress={() => setCity(option)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.cityLabel, selected && styles.cityLabelSelected]}>
+                  {option}
+                </Text>
+                {selected && (
+                  <Text style={styles.cityCheck}>✓</Text>
+                )}
+              </TouchableOpacity>
+            )
+          })}
+        </View>
+
+        <TouchableOpacity
+          style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
+          onPress={handleSave}
+          disabled={saving}
+          activeOpacity={0.85}
+        >
+          {saving ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.saveBtnText}>Save Changes</Text>
+          )}
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
+  )
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: COLORS.bg },
+  back: { position: 'absolute', zIndex: 10 },
+  backPill: {
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderRadius: 999,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  backText: { fontSize: 20, fontWeight: '700', lineHeight: 28 },
+  screenTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.textPrimary,
+    textAlign: 'center',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    zIndex: 9,
+  },
+  scroll: { flex: 1 },
+  scrollContent: { padding: SPACING.md, paddingBottom: 80 },
+  sectionCard: {
+    backgroundColor: COLORS.surface,
+    borderRadius: RADIUS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
+    marginBottom: SPACING.lg,
+  },
+  field: { padding: SPACING.lg },
+  fieldLabel: {
+    color: COLORS.textPrimary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: SPACING.sm,
+  },
+  input: {
+    backgroundColor: COLORS.surfaceElevated,
+    color: COLORS.textPrimary,
+    borderRadius: RADIUS.sm,
+    padding: SPACING.md,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  fieldHint: {
+    color: COLORS.textMuted,
+    fontSize: 12,
+    marginTop: SPACING.xs,
+  },
+  cityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: SPACING.lg,
+    height: 52,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  cityRowSelected: { backgroundColor: COLORS.accentSoft },
+  cityLabel: { color: COLORS.textPrimary, fontSize: 15, fontWeight: '500' },
+  cityLabelSelected: { color: COLORS.accentText, fontWeight: '700' },
+  cityCheck: { color: COLORS.accent, fontWeight: '800', fontSize: 16 },
+  saveBtn: {
+    backgroundColor: COLORS.accent,
+    borderRadius: RADIUS.md,
+    padding: SPACING.lg,
+    alignItems: 'center',
+    marginTop: SPACING.sm,
+  },
+  saveBtnDisabled: { opacity: 0.7 },
+  saveBtnText: { color: '#FFFFFF', fontWeight: '700', fontSize: 16 },
+})

@@ -1,3 +1,5 @@
+export const APP_NAME = 'Quest!'
+
 export const COLORS = {
   // Backgrounds — outdoor light, not a clinic
   bg: '#F0F9FF',          // sky-50: sun through a window

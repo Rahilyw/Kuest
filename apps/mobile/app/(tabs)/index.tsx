@@ -19,7 +19,7 @@ import { CategoryChip } from '@/components/CategoryChip'
 import { EmptyState } from '@/components/EmptyState'
 import { Avatar } from '@/components/Avatar'
 import { LevelChip } from '@/components/LevelChip'
-import { COLORS, SPACING, RADIUS, CATEGORY_ICONS } from '@/lib/constants'
+import { COLORS, SPACING, RADIUS, CATEGORY_ICONS, APP_NAME } from '@/lib/constants'
 import type { QuestCategory } from '@/lib/types'
 
 const CATEGORIES: { label: string; value: QuestCategory | undefined }[] = [
@@ -60,15 +60,19 @@ export default function QuestFeed() {
                 <Text style={styles.greetingName}>@{profile.username}</Text>
               </>
             ) : (
-              <Text style={styles.greetingName}>Welcome to Kuest</Text>
+              <Text style={styles.greetingName}>Welcome to {APP_NAME}</Text>
             )}
           </View>
           {hasProfile && (
             <View style={styles.headerRight}>
               <LevelChip level={profile.level} />
-              <View style={styles.avatarWrapper}>
+              <TouchableOpacity
+                style={styles.avatarWrapper}
+                onPress={() => router.push('/(tabs)/profile')}
+                activeOpacity={0.8}
+              >
                 <Avatar username={profile.username} uri={profile.avatar_url} size={40} />
-              </View>
+              </TouchableOpacity>
             </View>
           )}
         </View>

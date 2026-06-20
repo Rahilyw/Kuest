@@ -9,7 +9,7 @@ import {
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import { COLORS, SPACING, RADIUS, CITY } from '@/lib/constants'
+import { COLORS, SPACING, RADIUS, CITY, APP_NAME } from '@/lib/constants'
 import { completeOnboarding, PILOT_CITIES } from '@/lib/onboarding'
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window')
@@ -18,7 +18,7 @@ const STEPS = [
   {
     icon: '🗺️',
     title: 'Your city is the game board',
-    body: 'Kuest turns real places into weekly challenges. Run a trail, grab coffee, meet someone new — then prove you showed up.',
+    body: 'Quest! turns real places into weekly challenges. Run a trail, grab coffee, meet someone new — then prove you showed up.',
   },
   {
     icon: '📍',

@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Notifications from 'expo-notifications'
 import { useAuth } from '@/hooks/useAuth'
 import { SectionHeader } from '@/components/SectionHeader'
-import { COLORS, SPACING, RADIUS } from '@/lib/constants'
+import { COLORS, SPACING, RADIUS, APP_NAME } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
 import { registerForPushNotifications, clearPushToken } from '@/lib/notifications'
 
@@ -82,7 +82,15 @@ export default function Settings(): JSX.Element {
         {/* ACCOUNT */}
         <SectionHeader title="Account" />
         <View style={styles.sectionCard}>
-          <View style={styles.row}>
+          <TouchableOpacity
+            style={styles.row}
+            activeOpacity={0.7}
+            onPress={() => router.push('/edit-profile')}
+          >
+            <Text style={styles.rowLabel}>Edit Profile</Text>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
+          </TouchableOpacity>
+          <View style={[styles.row, styles.rowBorder]}>
             <Text style={styles.rowLabel}>Email</Text>
             <Text style={styles.rowValue} numberOfLines={1}>
               {session?.user?.email ?? ''}
@@ -131,6 +139,10 @@ export default function Settings(): JSX.Element {
         <SectionHeader title="About" />
         <View style={styles.sectionCard}>
           <View style={styles.row}>
+            <Text style={styles.rowLabel}>App</Text>
+            <Text style={styles.rowValue}>{APP_NAME}</Text>
+          </View>
+          <View style={[styles.row, styles.rowBorder]}>
             <Text style={styles.rowLabel}>Version</Text>
             <Text style={styles.rowValue}>1.0.0</Text>
           </View>

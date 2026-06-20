@@ -487,7 +487,7 @@ console.log('\n--- Section 11: No-profile guard (index.tsx) ---')
 function simulateHeaderRender(profile) {
   const hasProfile = profile !== null
   // Returns what would be rendered: greeting text
-  const greetingText = hasProfile ? `Welcome back, @${profile.username}` : 'Welcome to Kuest'
+  const greetingText = hasProfile ? `Welcome back, @${profile.username}` : 'Welcome to Quest!'
   // Returns whether Avatar/LevelChip would be rendered
   const showsAvatarAndChip = hasProfile
   return { greetingText, showsAvatarAndChip }
@@ -495,9 +495,9 @@ function simulateHeaderRender(profile) {
 
 const noProfileRender = simulateHeaderRender(null)
 assertEqual(
-  'No profile: greeting text is "Welcome to Kuest"',
+  'No profile: greeting text is "Welcome to Quest!"',
   noProfileRender.greetingText,
-  'Welcome to Kuest'
+  'Welcome to Quest!'
 )
 assert(
   'No profile: Avatar and LevelChip are NOT rendered',

@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'reac
 import { useRouter } from 'expo-router'
 import { supabase } from '@/lib/supabase'
 import { getOnboardingCity } from '@/lib/onboarding'
+import { APP_NAME } from '@/lib/constants'
 
 export default function SignUp() {
   const router = useRouter()
@@ -34,12 +35,15 @@ export default function SignUp() {
       })
     }
     setLoading(false)
+    Alert.alert('Account created!', 'You can now sign in.', [
+      { text: 'OK', onPress: () => router.back() },
+    ])
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.hero}>
-        <Text style={styles.logo}>Kuest</Text>
+        <Text style={styles.logo}>{APP_NAME}</Text>
         <Text style={styles.tagline}>Join the city challenge.</Text>
       </View>
 

@@ -35,6 +35,10 @@ export function useAuth() {
     setLoading(false)
   }
 
+  async function refreshProfile() {
+    if (session?.user.id) await fetchProfile(session.user.id)
+  }
+
   async function signOut() {
     if (session?.user.id) {
       await clearPushToken(session.user.id)
@@ -42,5 +46,5 @@ export function useAuth() {
     await supabase.auth.signOut()
   }
 
-  return { session, profile, loading, signOut }
+  return { session, profile, loading, signOut, refreshProfile }
 }

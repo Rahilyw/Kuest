@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import * as Location from 'expo-location'
+import { APP_NAME } from '@/lib/constants'
 
 interface Coords {
   lat: number
@@ -19,7 +20,7 @@ export function useLocation() {
   async function requestPermission() {
     const { status } = await Location.requestForegroundPermissionsAsync()
     if (status !== 'granted') {
-      setError('Location permission denied. Kuest needs your location to verify quest completions.')
+      setError(`Location permission denied. ${APP_NAME} needs your location to verify quest completions.`)
       return
     }
     setPermissionGranted(true)

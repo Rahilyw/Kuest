@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native'
 import { useRouter } from 'expo-router'
 import { supabase } from '@/lib/supabase'
+import { APP_NAME } from '@/lib/constants'
 
 export default function SignIn() {
   const router = useRouter()
@@ -20,7 +21,7 @@ export default function SignIn() {
     <View style={styles.container}>
       {/* Wordmark */}
       <View style={styles.hero}>
-        <Text style={styles.logo}>Kuest</Text>
+        <Text style={styles.logo}>{APP_NAME}</Text>
         <Text style={styles.tagline}>Real life, gamified.</Text>
       </View>
 
