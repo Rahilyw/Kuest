@@ -1,7 +1,7 @@
 # Quest! — Product Roadmap
 
 **Last updated:** June 21, 2026  
-**Stage:** MVP Complete → Pre-Launch Hardening
+**Stage:** MVP Complete → UI Reimagined → Pre-Launch Hardening
 
 The core product loop works end-to-end: discover quest → submit proof → admin approves → XP + leaderboard update. What remains is ship infrastructure (store submit creds, CI), redemption wiring, and retention mechanics — not greenfield feature work.
 
@@ -23,7 +23,7 @@ The core product loop works end-to-end: discover quest → submit proof → admi
 
 1. **iOS App Store submit credentials** — `eas.json` still has `REPLACE_WITH_*` placeholders; blocks TestFlight / App Store submit
 2. **`ADMIN_ALLOWED_EMAILS`** must be set in production — code denies all logins if unset (safe default)
-3. **Confirm migrations `005`–`007`** are applied on live Supabase (badges, streaks, avatar bucket)
+3. **Confirm migrations `005`–`008`** are applied on live Supabase (badges, streaks, avatar bucket, activity feed RLS)
 4. **Sponsored quest E2E** — zero sponsored seed rows; redemption mobile UI only on profile history after approval
 5. **Push tap navigation** — `mountPushListeners` module exists; wire in root `_layout` for notification → profile deep links
 
@@ -37,20 +37,23 @@ The core product loop works end-to-end: discover quest → submit proof → admi
 |---|---|
 | Email/password auth | Sign up, sign in, sign out; profile auto-created on sign up |
 | Onboarding (3 screens) | First-launch intro, city pick (Victoria pilot), sign-up/sign-in CTA — `app/onboarding.tsx` |
-| Quest feed | Category filter, pull-to-refresh, featured sponsored hero (client-side; empty if no sponsored quests) |
+| **Explore tab** | Hero-image quest cards (`QuestHeroCard`), player XP card, category filters, bell header — `app/(tabs)/index.tsx` |
+| **Quests tab (feed)** | Map preview + public activity feed from approved completions — `app/(tabs)/feed.tsx`, `hooks/useActivityFeed.ts` |
+| **Rankings tab** | Navy hero, podium top 3, featured badges, chasers list — `app/(tabs)/leaderboard.tsx` |
+| **Badges tab** | Dedicated badge collection grid with lock/earned states — `app/(tabs)/badges.tsx` |
 | Quest detail | Full info, category colors, start/submit CTA |
 | Quest submission | Camera proof, GPS geofence (300 m), Supabase Storage upload |
 | Submission celebration | Post-submit modal (pending approval) — `CompletionCelebration.tsx` |
-| Map view | Category-colored markers + geofence circles — `app/(tabs)/map.tsx` |
-| Weekly leaderboard | Top 50, user highlight strip, DB `leaderboard` view |
-| User profile | Hero card, stats (quests / XP / badges / level), XP bar, weekly rank card, top categories, badge grid, quest history (last 20 approved), pull-to-refresh — `app/(tabs)/profile.tsx` |
+| Map view | Full-screen map (hidden tab; opened from feed) — `app/(tabs)/map.tsx` |
+| User profile | Navy hero, 2×2 stats grid, recent activity, settings/edit links — `app/(tabs)/profile.tsx` |
 | Edit profile | Username + city update with validation — `app/edit-profile.tsx` (linked from profile + settings) |
 | Settings screen | Account display, Edit Profile link, push toggle (wired to token register/clear), weekly digest pref (local AsyncStorage), sign out |
 | XP & level system | 10 levels, 0–15k XP; DB trigger on approval |
 | Push token registration | Permission, Expo token, save to `profiles.push_token`; cleared on sign out |
 | Root error boundary | `components/ErrorBoundary.tsx` wraps Stack in `_layout.tsx` |
-| Home → profile shortcut | Avatar on feed header navigates to Profile tab |
-| Design system | Saltwater Saturday — `DESIGN.md` spec'd + implemented; `APP_NAME = 'Quest!'` in `lib/constants.ts` |
+| 5-tab navigation | Explore · Quests (feed) · Rankings · Badges · Profile — animated pill tab bar — `(tabs)/_layout.tsx` |
+| Design system | **Harbour Electric** (Figma reimagining) — `DESIGN.md` + `lib/constants.ts`; Quest Blue `#4364F7`, sky bg `#E8F3FF` |
+| Figma web prototype | `Gamified City Challenge App/` — Vite reference implementation synced with mobile direction |
 | App branding | Display name **Quest!**, slug `quest`, bundle ID `com.quest.app` — `app.json` |
 
 ### Admin Dashboard (`apps/admin`)
@@ -74,7 +77,8 @@ The core product loop works end-to-end: discover quest → submit proof → admi
 | PostgreSQL schema | 5 tables, 1 view, RLS on core tables |
 | XP-award DB trigger | `on_completion_approved` — increments XP + recalculates level |
 | Badge unlock DB trigger | `005_align_badge_unlock_logic.sql` replaces `002` logic — 12/13 badges aligned with seed |
-| Migrations 001–005 | Schema, badges, categories, push_token, badge alignment (+ duplicate push_token migration — see tech debt) |
+| Migrations 001–008 | Schema, badges, categories, push_token, badge alignment, streaks, avatars, activity feed RLS |
+| Activity feed RLS | `008_public_feed_completions.sql` — approved completions readable by all authenticated users |
 | 20 seeded quests | Victoria, BC — real GPS, 5 categories; **none sponsored** |
 | 13 seeded badges | 12 unlock rules match DB trigger + `award-xp`; Season Veteran deferred |
 | Edge functions | `award-xp` invoked on admin approve; `generate-redemption-code` implemented, not invoked |
@@ -116,7 +120,9 @@ These exist in code but are incomplete, misaligned, or not connected end-to-end.
 | **Error handling** | Root `ErrorBoundary` with on-brand fallback + Try Again | No Sentry or crash reporting service |
 | **Sponsored quests (UI)** | Feed hero + sponsor pill on `QuestCard`; admin list shows sponsor column; redemption code on profile history | Create form has sponsor state but **no UI fields**; no sponsored rows in seed — can't test E2E |
 | **Quest management (admin)** | Create + toggle status | No edit; sponsor fields not exposed in create form |
-| **Leaderboard UX** | Weekly XP ranking from DB view | Rank delta (`↑`) is static decoration; "Resets Monday" is copy only |
+| **Leaderboard UX** | Podium + chasers UI; weekly XP from DB view | Rank delta (`↑`) removed; "Week 24" is copy only |
+| **Activity feed** | Feed tab renders approved completions with proof photos | Likes/comments are UI placeholders; no social graph yet |
+| **Quest hero images** | Category-based Unsplash placeholders via `CATEGORY_IMAGES` | No `cover_image_url` column on quests table yet |
 | **Onboarding city** | Victoria selectable; saved to profile on sign-up | "More cities — Coming soon" is placeholder; multi-city not scoped in DB |
 | **Profile avatar** | Pick, crop, upload to `avatars` bucket; hash-based fallback | — |
 | **Streak system** | `006_streak_system.sql` + profile stats display | Celebration modal shows pre-approval `current_streak` at submit — not updated streak after admin approve |
@@ -140,7 +146,7 @@ These exist in code but are incomplete, misaligned, or not connected end-to-end.
 | **Quest expiry / scheduling** | 🟡 Medium | No `active_from` / `active_until` in schema |
 | **Admin quest editing** | 🟡 Medium | Create + toggle only |
 | **Duplicate completion UX** | 🟡 Medium | DB unique constraint blocks re-attempt after rejection — no friendly message |
-| **Social features** | 🟢 Low | Friends, activity feed — v2 |
+| **Social features** | 🟡 Medium | Public activity feed shipped; friends/follows/reactions still v2 |
 | **In-app quest search** | 🟢 Low | Category filter only |
 
 ### Resolved since prior roadmap
@@ -228,12 +234,13 @@ Blockers before any real users touch the app.
 
 | # | Task | Status |
 |---|---|---|
-| 3.1 | Activity feed — friends' recent completions | ❌ |
-| 3.2 | Follow/friend system | ❌ |
-| 3.3 | Quest detail: "X friends completed" counter | ❌ |
-| 3.4 | Share quest / completion (native share sheet) | ❌ |
-| 3.5 | In-app quest comments or reactions | ❌ |
-| 3.6 | Neighborhood / area filtering on map | ❌ |
+| 3.1 | Activity feed — public recent completions | ✅ Done (`feed.tsx` + `useActivityFeed` + migration `008`) |
+| 3.2 | Feed interactions (likes, comments) | ❌ | UI placeholders only |
+| 3.3 | Follow/friend system | ❌ |
+| 3.4 | Quest detail: "X friends completed" counter | ❌ |
+| 3.5 | Share quest / completion (native share sheet) | ❌ |
+| 3.6 | Per-quest cover images in database | ❌ | Currently category placeholders |
+| 3.7 | Neighborhood / area filtering on map | ❌ |
 
 ---
 
@@ -257,7 +264,7 @@ Blockers before any real users touch the app.
 | iOS submit creds + first store build | Low | Critical (ship) | **P0** | ❌ Placeholders in `eas.json` |
 | EAS preview build (verify) | Low | Critical (ship) | **P0** | ⚠️ Config done; build not verified |
 | `ADMIN_ALLOWED_EMAILS` in prod | Trivial | Critical | **P0** | ⚠️ Set on deploy |
-| Confirm migrations 005–007 on live DB | Low | High | **P0** | ⚠️ Ops check |
+| Confirm migrations 005–008 on live DB | Low | High | **P0** | ⚠️ Ops check (008 = feed RLS) |
 | CI pipeline (logic tests + build) | Low | High | **P0** | ✅ `.github/workflows/ci.yml` |
 | Error boundary + Sentry | Low | High | **P0** | ⚠️ Boundary done; Sentry not |
 | Badge unlock (12/13) | — | Critical | **P0** | ⚠️ Code done; verify DB |
@@ -333,8 +340,14 @@ Push on approve requires: deployed `award-xp` function, valid admin `SUPABASE_SE
 ```
 Root Stack
 ├── onboarding
-├── (auth)/sign-in, sign-up
-├── (tabs)/index, map, leaderboard, profile
+├── (auth)/sign-in, sign-up, forgot-password, reset-password
+├── (tabs)/
+│   ├── index      — Explore (hero quest cards)
+│   ├── feed       — Quests tab (map preview + activity feed)
+│   ├── leaderboard — Rankings (podium + chasers)
+│   ├── badges     — Badge collection
+│   ├── profile    — Stats + recent activity
+│   └── map        — Full map (hidden from tab bar)
 ├── quest/[id]
 ├── submit/[questId]  (modal)
 ├── settings
@@ -357,6 +370,7 @@ Root Stack
 
 | Date | Change |
 |---|---|
+| Jun 21, 2026 | **Figma UI reimagining shipped:** 5-tab nav (Explore/Quests/Rankings/Badges/Profile), Harbour Electric design system, hero quest cards, activity feed, podium rankings, dedicated badges tab, profile simplification. Docs/tokens updated. Migration `008` for feed RLS. Prior Saltwater Saturday spec superseded in `DESIGN.md`. |
 | Jun 21, 2026 | Code audit: CI + npm test marked done; avatar upload, streak DB/profile, redemption admin wiring verified; legal screens shipped; push listeners module exists but not on `main` `_layout`; streak celebration shows stale count at submit; README migration order + admin port 3000 fixed. |
 | Jun 19, 2026 | Full re-audit after profile work + Quest! rebrand. Marked edit profile, enhanced profile, app rename, EAS project ID as done. Added CI gap (0.10). Corrected EAS status (project ID set; iOS submit still placeholder). Updated settings partial status (edit done, legal links stubbed). Added mobile screen map, resolved-items table, and tech-debt entries for test script + leaderboard delta. |
 | Jun 18, 2026 | Full rewrite after codebase audit. Marked onboarding, quest history, submission celebration, settings, push registration, admin session auth as done/partial. Added badge mismatch, award-xp wiring, map bug, EAS placeholders as P0 blockers. |
