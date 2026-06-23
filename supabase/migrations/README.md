@@ -4,11 +4,10 @@ Apply migrations in numeric/filename order:
 
 | File | Description |
 |------|-------------|
-| `001_initial_schema.sql` | Core tables, XP trigger, storage bucket |
+| `20260619010246_initial_schema.sql` | Core tables, XP trigger, storage bucket |
 | `002_badge_unlock_trigger.sql` | Badge trigger (replaced by 005) |
 | `003_add_quest_categories.sql` | Adds outdoor/culture enum values (unused in seed) |
 | `004_push_token.sql` | Adds `push_token` to profiles |
-| `20250618120000_add_push_token_to_profiles.sql` | Duplicate of 004 — skip if 004 already applied |
 | `005_align_badge_unlock_logic.sql` | Replaces 002 trigger; must run after 004 |
 | `006_streak_system.sql` | Weekly streak columns and XP trigger extension |
 | `007_avatar_bucket.sql` | Public `avatars` storage bucket and RLS policies |

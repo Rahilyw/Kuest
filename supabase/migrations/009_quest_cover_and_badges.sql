@@ -13,5 +13,7 @@ create table if not exists quest_badges (
 
 alter table quest_badges enable row level security;
 
+drop policy if exists "Anyone can read quest_badges" on quest_badges;
+
 create policy "Anyone can read quest_badges"
   on quest_badges for select using (true);
