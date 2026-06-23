@@ -47,94 +47,101 @@ export default function RankingsScreen() {
 
   const rest = entries.slice(3)
 
+  const ListHeaderComponent = (
+    <>
+      <View style={[styles.hero, { paddingTop: insets.top + 12 }]}>
+        <View style={styles.heroTop}>
+          <View style={styles.menuIcon}>
+            <View style={styles.menuLine} />
+            <View style={[styles.menuLine, { width: 28 }]} />
+            <View style={[styles.menuLine, { width: 16 }]} />
+          </View>
+          <Text style={styles.heroTitle}>QUEST! RANKINGS</Text>
+          <Ionicons name="trophy" size={20} color={COLORS.warning} />
+        </View>
+
+        <Text style={styles.weekLabel}>WEEK 24 · {CITY.name.toUpperCase()}</Text>
+        <Text style={styles.headline}>THE CITY&apos;S ELITE</Text>
+        <Text style={styles.tagline}>Off the couch and onto the board.</Text>
+
+        {!loading && entries.length >= 3 && <Podium entries={entries} />}
+      </View>
+
+      {badges.length > 0 && (
+        <View style={styles.badgesSection}>
+          <View style={styles.badgesHeader}>
+            <Text style={styles.badgesTitle}>FEATURED BADGES</Text>
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>New</Text>
+            </View>
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {badges.map((ub) => (
+              <View key={ub.badge_id} style={styles.featuredBadge}>
+                <View style={styles.featuredBadgeIcon}>
+                  <Text style={styles.featuredEmoji}>{ub.badge?.icon ?? '🏅'}</Text>
+                </View>
+                <Text style={styles.featuredName} numberOfLines={2}>
+                  {ub.badge?.name}
+                </Text>
+              </View>
+            ))}
+          </ScrollView>
+        </View>
+      )}
+
+      <View style={styles.chasersHeader}>
+        <Text style={styles.chasersTitle}>UPCOMING CHASERS</Text>
+      </View>
+
+      {loading ? (
+        <Text style={styles.loading}>Loading…</Text>
+      ) : entries.length === 0 ? (
+        <EmptyState
+          icon="🏆"
+          title="No rankings yet"
+          subtitle="Complete quests this week to appear on the board."
+        />
+      ) : null}
+    </>
+  )
+
+  const ListFooterComponent = entries.length > 0 ? (
+    <TouchableOpacity style={styles.boostBtn} activeOpacity={0.85}>
+      <Text style={styles.boostText}>Boost Your Rank →</Text>
+    </TouchableOpacity>
+  ) : null
+
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-        <View style={[styles.hero, { paddingTop: insets.top + 12 }]}>
-          <View style={styles.heroTop}>
-            <View style={styles.menuIcon}>
-              <View style={styles.menuLine} />
-              <View style={[styles.menuLine, { width: 28 }]} />
-              <View style={[styles.menuLine, { width: 16 }]} />
+      <FlatList
+        data={loading || entries.length === 0 ? [] : rest}
+        keyExtractor={(item) => item.user_id}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 100 }}
+        ListHeaderComponent={ListHeaderComponent}
+        ListFooterComponent={ListFooterComponent}
+        renderItem={({ item }) => (
+          <View style={[
+            styles.chaserRow,
+            item.user_id === profile?.id && styles.chaserHighlight,
+            { marginHorizontal: SPACING.xl },
+          ]}>
+            <Text style={styles.chaserRank}>{item.rank}</Text>
+            <Avatar username={item.username} uri={item.avatar_url} size={40} />
+            <View style={styles.chaserInfo}>
+              <Text style={styles.chaserName}>@{item.username}</Text>
+              <Text style={styles.chaserLevel}>
+                LV {estimateLevel(item.weekly_xp)} {getLevelTitle(estimateLevel(item.weekly_xp))}
+              </Text>
             </View>
-            <Text style={styles.heroTitle}>QUEST! RANKINGS</Text>
-            <Ionicons name="trophy" size={20} color={COLORS.warning} />
-          </View>
-
-          <Text style={styles.weekLabel}>WEEK 24 · {CITY.name.toUpperCase()}</Text>
-          <Text style={styles.headline}>THE CITY'S ELITE</Text>
-          <Text style={styles.tagline}>Off the couch and onto the board.</Text>
-
-          {!loading && entries.length >= 3 && <Podium entries={entries} />}
-        </View>
-
-        {badges.length > 0 && (
-          <View style={styles.badgesSection}>
-            <View style={styles.badgesHeader}>
-              <Text style={styles.badgesTitle}>FEATURED BADGES</Text>
-              <View style={styles.newBadge}>
-                <Text style={styles.newBadgeText}>New</Text>
-              </View>
+            <View style={styles.chaserXpBlock}>
+              <Text style={styles.chaserXp}>{item.weekly_xp.toLocaleString()}</Text>
+              <Text style={styles.chaserXpLabel}>XP</Text>
             </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {badges.map((ub) => (
-                <View key={ub.badge_id} style={styles.featuredBadge}>
-                  <View style={styles.featuredBadgeIcon}>
-                    <Text style={styles.featuredEmoji}>{ub.badge?.icon ?? '🏅'}</Text>
-                  </View>
-                  <Text style={styles.featuredName} numberOfLines={2}>
-                    {ub.badge?.name}
-                  </Text>
-                </View>
-              ))}
-            </ScrollView>
           </View>
         )}
-
-        <View style={styles.chasersHeader}>
-          <Text style={styles.chasersTitle}>UPCOMING CHASERS</Text>
-        </View>
-
-        {loading ? (
-          <Text style={styles.loading}>Loading…</Text>
-        ) : entries.length === 0 ? (
-          <EmptyState
-            icon="🏆"
-            title="No rankings yet"
-            subtitle="Complete quests this week to appear on the board."
-          />
-        ) : (
-          <FlatList
-            data={rest}
-            scrollEnabled={false}
-            keyExtractor={(item) => item.user_id}
-            renderItem={({ item }) => (
-              <View style={[
-                styles.chaserRow,
-                item.user_id === profile?.id && styles.chaserHighlight,
-              ]}>
-                <Text style={styles.chaserRank}>{item.rank}</Text>
-                <Avatar username={item.username} uri={item.avatar_url} size={40} />
-                <View style={styles.chaserInfo}>
-                  <Text style={styles.chaserName}>@{item.username}</Text>
-                  <Text style={styles.chaserLevel}>
-                    LV {estimateLevel(item.weekly_xp)} {getLevelTitle(estimateLevel(item.weekly_xp))}
-                  </Text>
-                </View>
-                <View style={styles.chaserXpBlock}>
-                  <Text style={styles.chaserXp}>{item.weekly_xp.toLocaleString()}</Text>
-                  <Text style={styles.chaserXpLabel}>XP</Text>
-                </View>
-              </View>
-            )}
-            contentContainerStyle={styles.chaserList}
-          />
-        )}
-
-        <TouchableOpacity style={styles.boostBtn} activeOpacity={0.85}>
-          <Text style={styles.boostText}>Boost Your Rank →</Text>
-        </TouchableOpacity>
-      </ScrollView>
+      />
     </View>
   )
 }
