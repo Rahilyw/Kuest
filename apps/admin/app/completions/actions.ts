@@ -27,17 +27,34 @@ export async function getPendingCompletions(): Promise<Completion[]> {
   return (data as Completion[]) ?? []
 }
 
+export interface ApprovalResult {
+  codeGenerated: boolean
+}
+
 export async function updateCompletionStatus(
   id: string,
   status: 'approved' | 'rejected',
   isSponsored: boolean,
-) {
-  const { error } = await supabaseAdmin
+): Promise<ApprovalResult> {
+  const { data, error } = await supabaseAdmin
+    .from('completions')
+    .select('status')
+    .eq('id', id)
+    .single()
+
+  // Prevent double-processing if already approved/rejected
+  if (!error && data?.status !== 'pending') {
+    return { codeGenerated: false }
+  }
+
+  const { error: updateError } = await supabaseAdmin
     .from('completions')
     .update({ status, reviewed_at: new Date().toISOString() })
     .eq('id', id)
 
-  if (error) throw new Error(error.message)
+  if (updateError) throw new Error(updateError.message)
+
+  let codeGenerated = false
 
   if (status === 'approved') {
     try {
@@ -49,9 +66,12 @@ export async function updateCompletionStatus(
     if (isSponsored) {
       try {
         await invokeEdgeFunction('generate-redemption-code', { completion_id: id, action: 'generate' })
+        codeGenerated = true
       } catch (err) {
         console.error('[generate-redemption-code] failed for completion', id, err)
       }
     }
   }
+
+  return { codeGenerated }
 }
