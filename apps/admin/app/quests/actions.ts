@@ -143,3 +143,68 @@ export async function toggleQuestStatus(id: string, current: string): Promise<st
   revalidatePath('/quests')
   return next
 }
+
+export interface UpdateQuestInput {
+  id: string
+  title: string
+  description: string
+  category: string
+  lat: number
+  lng: number
+  radius_meters: number
+  xp_reward: number
+  is_sponsored: boolean
+  sponsor_name: string | null
+  sponsor_reward: string | null
+}
+
+export async function updateQuest(input: UpdateQuestInput): Promise<{ ok: true; quest: Quest } | { ok: false; error: string }> {
+  try {
+    const { id, title, description, category, lat, lng, radius_meters, xp_reward, is_sponsored, sponsor_name, sponsor_reward } = input
+
+    if (!title.trim() || !description.trim()) {
+      return { ok: false, error: 'Title and description are required.' }
+    }
+    if (Number.isNaN(lat) || Number.isNaN(lng)) {
+      return { ok: false, error: 'Valid latitude and longitude are required.' }
+    }
+    if (Number.isNaN(radius_meters) || radius_meters < 50 || radius_meters > 2000) {
+      return { ok: false, error: 'Geofence radius must be between 50 and 2000 metres.' }
+    }
+    if (Number.isNaN(xp_reward) || xp_reward < 25 || xp_reward > 1000) {
+      return { ok: false, error: 'XP reward must be between 25 and 1000.' }
+    }
+    if (is_sponsored && (!sponsor_name?.trim() || !sponsor_reward?.trim())) {
+      return { ok: false, error: 'Sponsor name and reward are required for sponsored quests.' }
+    }
+
+    const { data: quest, error: updateError } = await supabaseAdmin
+      .from('quests')
+      .update({
+        title: title.trim(),
+        description: description.trim(),
+        category,
+        lat,
+        lng,
+        radius_meters,
+        xp_reward,
+        is_sponsored,
+        sponsor_name: is_sponsored ? (sponsor_name?.trim() ?? null) : null,
+        sponsor_reward: is_sponsored ? (sponsor_reward?.trim() ?? null) : null,
+      })
+      .eq('id', id)
+      .select('*, quest_badges(badge_id, badge:badges(*))')
+      .single()
+
+    if (updateError || !quest) {
+      return { ok: false, error: updateError?.message ?? 'Failed to update quest.' }
+    }
+
+    revalidatePath('/quests')
+    revalidatePath('/')
+
+    return { ok: true, quest: quest as Quest }
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Unknown error' }
+  }
+}
