@@ -141,3 +141,8 @@ export const PROOF_GEOFENCE_RADIUS = 300
 
 export const BYPASS_GEOFENCE =
   process.env.EXPO_PUBLIC_BYPASS_GEOFENCE === 'true' || __DEV__
+
+export const LEGAL_URLS = {
+  privacyPolicy: 'https://quest.app/privacy',
+  termsOfService: 'https://quest.app/terms',
+} as const

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Switch, Linking } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import * as Notifications from 'expo-notifications'
 import { useAuth } from '@/hooks/useAuth'
 import { SectionHeader } from '@/components/SectionHeader'
-import { COLORS, SPACING, RADIUS, APP_NAME } from '@/lib/constants'
+import { COLORS, SPACING, RADIUS, APP_NAME, LEGAL_URLS } from '@/lib/constants'
 import { supabase } from '@/lib/supabase'
 import { registerForPushNotifications, clearPushToken } from '@/lib/notifications'
 
@@ -149,7 +149,7 @@ export default function Settings(): JSX.Element {
           <TouchableOpacity
             style={[styles.row, styles.rowBorder]}
             activeOpacity={0.7}
-            onPress={() => router.push('/legal/privacy')}
+            onPress={() => Linking.openURL(LEGAL_URLS.privacyPolicy).catch(() => {})}
           >
             <Text style={styles.rowLabel}>Privacy Policy</Text>
             <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
@@ -157,7 +157,7 @@ export default function Settings(): JSX.Element {
           <TouchableOpacity
             style={[styles.row, styles.rowBorder]}
             activeOpacity={0.7}
-            onPress={() => router.push('/legal/terms')}
+            onPress={() => Linking.openURL(LEGAL_URLS.termsOfService).catch(() => {})}
           >
             <Text style={styles.rowLabel}>Terms of Service</Text>
             <Ionicons name="chevron-forward" size={18} color={COLORS.textMuted} />
