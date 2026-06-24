@@ -2,12 +2,281 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { getQuests, toggleQuestStatus, type Quest } from './actions'
-import { theme } from '@/lib/theme'
+import { getQuests, toggleQuestStatus, updateQuest, type Quest } from './actions'
+import { theme, VICTORIA_DEFAULT } from '@/lib/theme'
+
+const CATEGORIES = Object.entries(theme.categories)
+
+interface EditFormState {
+  title: string
+  description: string
+  category: string
+  lat: string
+  lng: string
+  radius_meters: string
+  xp_reward: string
+  is_sponsored: boolean
+  sponsor_name: string
+  sponsor_reward: string
+}
+
+function questToFormState(q: Quest): EditFormState {
+  return {
+    title: q.title,
+    description: q.description,
+    category: q.category,
+    lat: String(q.lat),
+    lng: String(q.lng),
+    radius_meters: String(q.radius_meters),
+    xp_reward: String(q.xp_reward),
+    is_sponsored: q.is_sponsored,
+    sponsor_name: q.sponsor_name ?? '',
+    sponsor_reward: q.sponsor_reward ?? '',
+  }
+}
+
+function EditForm({ quest, onSave, onCancel }: { quest: Quest; onSave: (updated: Quest) => void; onCancel: () => void }) {
+  const [form, setForm] = useState<EditFormState>(questToFormState(quest))
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  function set<K extends keyof EditFormState>(field: K, value: EditFormState[K]) {
+    setForm((prev) => ({ ...prev, [field]: value }))
+  }
+
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault()
+    setError(null)
+    setSubmitting(true)
+
+    try {
+      const lat = parseFloat(form.lat)
+      const lng = parseFloat(form.lng)
+      const radius_meters = parseInt(form.radius_meters, 10)
+      const xp_reward = parseInt(form.xp_reward, 10)
+
+      const result = await updateQuest({
+        id: quest.id,
+        title: form.title,
+        description: form.description,
+        category: form.category,
+        lat,
+        lng,
+        radius_meters,
+        xp_reward,
+        is_sponsored: form.is_sponsored,
+        sponsor_name: form.is_sponsored ? form.sponsor_name || null : null,
+        sponsor_reward: form.is_sponsored ? form.sponsor_reward || null : null,
+      })
+
+      if (!result.ok) {
+        setError(result.error)
+        return
+      }
+
+      onSave(result.quest)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred.')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSave} style={{ padding: '0 16px 20px' }}>
+      <div style={{ borderTop: `1px solid ${theme.border}`, paddingTop: 16 }}>
+        <p style={{ margin: '0 0 14px', fontWeight: 800, fontSize: 12, color: theme.textMuted, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+          Edit Quest
+        </p>
+
+        {/* Title */}
+        <div className="admin-field">
+          <label className="admin-label" htmlFor={`edit-title-${quest.id}`}>Title</label>
+          <input
+            id={`edit-title-${quest.id}`}
+            className="admin-input"
+            value={form.title}
+            onChange={(e) => set('title', e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Description */}
+        <div className="admin-field">
+          <label className="admin-label" htmlFor={`edit-desc-${quest.id}`}>Description</label>
+          <textarea
+            id={`edit-desc-${quest.id}`}
+            className="admin-textarea"
+            rows={3}
+            value={form.description}
+            onChange={(e) => set('description', e.target.value)}
+            required
+          />
+        </div>
+
+        {/* Category */}
+        <div className="admin-field">
+          <span className="admin-label">Category</span>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {CATEGORIES.map(([key, cat]) => {
+              const active = form.category === key
+              return (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={() => set('category', key)}
+                  style={{
+                    border: active ? `2px solid ${cat.color}` : `1px solid ${theme.border}`,
+                    background: active ? cat.soft : 'transparent',
+                    color: active ? cat.color : theme.textMuted,
+                    borderRadius: 999,
+                    padding: '6px 12px',
+                    fontWeight: 700,
+                    fontSize: 12,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                  }}
+                >
+                  {cat.icon} {cat.label}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Location */}
+        <div className="admin-grid-2">
+          <div className="admin-field">
+            <label className="admin-label" htmlFor={`edit-lat-${quest.id}`}>Latitude</label>
+            <input
+              id={`edit-lat-${quest.id}`}
+              className="admin-input"
+              type="number"
+              step="any"
+              value={form.lat}
+              onChange={(e) => set('lat', e.target.value)}
+              required
+            />
+          </div>
+          <div className="admin-field">
+            <label className="admin-label" htmlFor={`edit-lng-${quest.id}`}>Longitude</label>
+            <input
+              id={`edit-lng-${quest.id}`}
+              className="admin-input"
+              type="number"
+              step="any"
+              value={form.lng}
+              onChange={(e) => set('lng', e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        {/* Radius + XP */}
+        <div className="admin-grid-2">
+          <div className="admin-field">
+            <label className="admin-label" htmlFor={`edit-radius-${quest.id}`}>Geofence radius (m)</label>
+            <input
+              id={`edit-radius-${quest.id}`}
+              className="admin-input"
+              type="number"
+              min={50}
+              max={2000}
+              value={form.radius_meters}
+              onChange={(e) => set('radius_meters', e.target.value)}
+              required
+            />
+          </div>
+          <div className="admin-field">
+            <label className="admin-label" htmlFor={`edit-xp-${quest.id}`}>XP reward</label>
+            <input
+              id={`edit-xp-${quest.id}`}
+              className="admin-input"
+              type="number"
+              min={25}
+              max={1000}
+              value={form.xp_reward}
+              onChange={(e) => set('xp_reward', e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        {/* Victoria shortcut */}
+        <div style={{ marginBottom: 12 }}>
+          <button
+            type="button"
+            className="admin-btn admin-btn-ghost"
+            style={{ fontSize: 11, padding: '5px 10px' }}
+            onClick={() => { set('lat', String(VICTORIA_DEFAULT.lat)); set('lng', String(VICTORIA_DEFAULT.lng)) }}
+          >
+            Reset to Victoria centre
+          </button>
+        </div>
+
+        {/* Sponsor toggle */}
+        <div className="admin-field">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={form.is_sponsored}
+              onChange={(e) => set('is_sponsored', e.target.checked)}
+              style={{ width: 16, height: 16, accentColor: theme.primary }}
+            />
+            <span style={{ fontWeight: 700, fontSize: 13 }}>Sponsored quest</span>
+          </label>
+        </div>
+
+        {form.is_sponsored && (
+          <div className="admin-grid-2">
+            <div className="admin-field">
+              <label className="admin-label" htmlFor={`edit-sname-${quest.id}`}>Sponsor name</label>
+              <input
+                id={`edit-sname-${quest.id}`}
+                className="admin-input"
+                placeholder="Habit Coffee"
+                value={form.sponsor_name}
+                onChange={(e) => set('sponsor_name', e.target.value)}
+                required={form.is_sponsored}
+              />
+            </div>
+            <div className="admin-field">
+              <label className="admin-label" htmlFor={`edit-sreward-${quest.id}`}>Sponsor reward</label>
+              <input
+                id={`edit-sreward-${quest.id}`}
+                className="admin-input"
+                placeholder="Free double shot upgrade"
+                value={form.sponsor_reward}
+                onChange={(e) => set('sponsor_reward', e.target.value)}
+                required={form.is_sponsored}
+              />
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', borderRadius: 10, padding: 12, marginBottom: 12, color: '#fca5a5', fontSize: 13 }}>
+            {error}
+          </div>
+        )}
+
+        <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+          <button type="submit" className="admin-btn admin-btn-primary" disabled={submitting} style={{ fontSize: 12, flex: 1 }}>
+            {submitting ? 'Saving…' : 'Save Changes'}
+          </button>
+          <button type="button" className="admin-btn admin-btn-ghost" onClick={onCancel} style={{ fontSize: 12, flex: 1 }}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </form>
+  )
+}
 
 export default function QuestsPage() {
   const [quests, setQuests] = useState<Quest[]>([])
   const [loading, setLoading] = useState(true)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   useEffect(() => {
     getQuests().then((data) => {
@@ -19,6 +288,11 @@ export default function QuestsPage() {
   async function handleToggle(id: string, status: string) {
     const next = await toggleQuestStatus(id, status)
     setQuests((prev) => prev.map((q) => (q.id === id ? { ...q, status: next } : q)))
+  }
+
+  function handleEditSave(updated: Quest) {
+    setQuests((prev) => prev.map((q) => (q.id === updated.id ? updated : q)))
+    setEditingId(null)
   }
 
   return (
@@ -46,6 +320,7 @@ export default function QuestsPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 }}>
           {quests.map((q) => {
             const cat = theme.categories[q.category]
+            const isEditing = editingId === q.id
             return (
               <div key={q.id} className="admin-card" style={{ padding: 0, overflow: 'hidden' }}>
                 <div
@@ -115,15 +390,33 @@ export default function QuestsPage() {
                       )}
                     </div>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => handleToggle(q.id, q.status)}
-                    className="admin-btn admin-btn-ghost"
-                    style={{ width: '100%', marginTop: 14, fontSize: 12 }}
-                  >
-                    {q.status === 'active' ? 'Deactivate' : 'Activate'}
-                  </button>
+                  <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(isEditing ? null : q.id)}
+                      className="admin-btn admin-btn-ghost"
+                      style={{ flex: 1, fontSize: 12 }}
+                    >
+                      {isEditing ? 'Close' : 'Edit'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleToggle(q.id, q.status)}
+                      className="admin-btn admin-btn-ghost"
+                      style={{ flex: 1, fontSize: 12 }}
+                    >
+                      {q.status === 'active' ? 'Deactivate' : 'Activate'}
+                    </button>
+                  </div>
                 </div>
+
+                {isEditing && (
+                  <EditForm
+                    quest={q}
+                    onSave={handleEditSave}
+                    onCancel={() => setEditingId(null)}
+                  />
+                )}
               </div>
             )
           })}
