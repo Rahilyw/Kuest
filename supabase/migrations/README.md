@@ -14,6 +14,8 @@ Apply migrations in numeric/filename order:
 | `008_public_feed_completions.sql` | RLS policy so activity feed can read approved completions |
 | `009_quest_cover_and_badges.sql` | `quests.cover_image_url` column + `quest_badges` junction table |
 | `010_quest_covers_bucket.sql` | Public `quest-covers` storage bucket for admin cover uploads |
+| `011_leaderboard_rank_snapshot.sql` | `profiles.last_week_rank` for weekly rank delta display |
+| `012_quest_scheduling.sql` | `quests.active_from` / `active_until` scheduling columns |
 
 ## Env var naming drift
 
