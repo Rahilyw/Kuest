@@ -15,11 +15,13 @@
       "Bash(git checkout -b *)",
       "Bash(mkdir -p .pipeline)",
       "Bash(rm -f .pipeline/spec.md .pipeline/changes.md .pipeline/test-results.md .pipeline/review.md)",
-      "Bash(npm test:*)"
+      "Bash(npm test:*)",
+      "Bash(git commit *)",
+      "Bash(git push *)",
+      "Bash(git add *)",
+      "Bash(gh pr create *)"
     ],
     "deny": [
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
       "Bash(rm -rf *)",
       "Bash(rm -r *)"
     ]
