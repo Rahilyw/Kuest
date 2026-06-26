@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   },
   xpText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14 },
   radiusText: { color: COLORS.textMuted, fontSize: 12, fontWeight: '600' },
-  description: { color: COLORS.textSecondary, fontSize: 16, lineHeight: 25, marginBottom: SPACING.xl },
+  description: { color: COLORS.textMuted, fontSize: 16, lineHeight: 25, marginBottom: SPACING.xl },
   rewardBox: {
     backgroundColor: COLORS.surface,
     borderRadius: RADIUS.lg,
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
   },
   rulesTitle: { color: COLORS.navy, fontWeight: '800', marginBottom: SPACING.md, fontSize: 15 },
-  rulesText: { color: COLORS.textSecondary, marginBottom: 10, lineHeight: 22 },
+  rulesText: { color: COLORS.textMuted, marginBottom: 10, lineHeight: 22 },
   footer: {
     padding: SPACING.lg,
     paddingBottom: 36,

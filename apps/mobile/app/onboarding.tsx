@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.5,
   },
   body: {
-    color: COLORS.textSecondary,
+    color: COLORS.textMuted,
     fontSize: 16,
     lineHeight: 24,
     maxWidth: 340,

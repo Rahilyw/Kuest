@@ -193,11 +193,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pendingCircle: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: COLORS.warningSoft,
   },
   checkMark: {
     fontSize: 36,
-    color: 'white',
+    color: COLORS.surface,
     fontWeight: '800',
   },
   pendingMark: {
@@ -219,13 +219,13 @@ const styles = StyleSheet.create({
   },
   xpPill: {
     marginTop: 16,
-    backgroundColor: '#F0FDF4',
+    backgroundColor: COLORS.successSoft,
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 20,
   },
   pendingPill: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: COLORS.warningSoft,
   },
   xpText: {
     color: COLORS.success,
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
   },
   streakPill: {
     marginTop: 8,
-    backgroundColor: '#FEF3C7',
+    backgroundColor: COLORS.warningSoft,
     borderRadius: 999,
     paddingVertical: 8,
     paddingHorizontal: 20,
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   doneBtnText: {
-    color: 'white',
+    color: COLORS.surface,
     fontWeight: '700',
     fontSize: 16,
   },

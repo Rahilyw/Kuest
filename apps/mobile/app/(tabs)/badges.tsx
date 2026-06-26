@@ -87,7 +87,13 @@ export default function BadgesScreen() {
           {allBadges.map((badge) => {
             const isEarned = earned.has(badge.id)
             return (
-              <View key={badge.id} style={[styles.tile, !isEarned && styles.tileLocked]}>
+              <View
+                key={badge.id}
+                style={[styles.tile, !isEarned && styles.tileLocked]}
+                accessible
+                accessibilityLabel={`${badge.name}: ${isEarned ? 'earned' : 'locked'}`}
+                accessibilityHint={badge.description}
+              >
                 {!isEarned && (
                   <View style={styles.lockOverlay}>
                     <Ionicons name="lock-closed" size={24} color={COLORS.textMuted} />
@@ -95,15 +101,12 @@ export default function BadgesScreen() {
                 )}
                 {isEarned && (
                   <View style={styles.checkBadge}>
-                    <Ionicons name="checkmark" size={10} color="#FFFFFF" />
+                    <Ionicons name="checkmark" size={10} color={COLORS.surface} />
                   </View>
                 )}
                 <Text style={styles.badgeEmoji}>{badge.icon}</Text>
                 <Text style={styles.badgeName}>{badge.name}</Text>
                 <Text style={styles.badgeDesc} numberOfLines={2}>{badge.description}</Text>
-                <View style={styles.rarityPill}>
-                  <Text style={styles.rarityText}>BADGE</Text>
-                </View>
               </View>
             )
           })}
@@ -177,13 +180,5 @@ const styles = StyleSheet.create({
   },
   badgeEmoji: { fontSize: 28, marginBottom: SPACING.sm },
   badgeName: { color: COLORS.textPrimary, fontSize: 14, fontWeight: '900', marginBottom: 4 },
-  badgeDesc: { color: COLORS.textMuted, fontSize: 10, lineHeight: 14, marginBottom: SPACING.sm },
-  rarityPill: {
-    alignSelf: 'flex-start',
-    backgroundColor: `${COLORS.primary}22`,
-    borderRadius: RADIUS.pill,
-    paddingHorizontal: SPACING.sm,
-    paddingVertical: 2,
-  },
-  rarityText: { color: COLORS.primary, fontSize: 10, fontWeight: '900' },
+  badgeDesc: { color: COLORS.textMuted, fontSize: 10, lineHeight: 14 },
 })

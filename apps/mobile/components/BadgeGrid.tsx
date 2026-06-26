@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
   },
   badgeIcon: { fontSize: 30, marginBottom: SPACING.xs },
   badgeName: {
-    color: COLORS.textSecondary,
+    color: COLORS.textMuted,
     fontSize: 11,
     textAlign: 'center',
     fontWeight: '600',

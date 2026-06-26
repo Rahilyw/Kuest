@@ -30,6 +30,8 @@ export default function FeedScreen() {
         style={styles.mapCard}
         activeOpacity={0.9}
         onPress={() => router.push('/(tabs)/map')}
+        accessibilityRole="button"
+        accessibilityLabel="Open quest map"
       >
         <MapView
           style={styles.map}

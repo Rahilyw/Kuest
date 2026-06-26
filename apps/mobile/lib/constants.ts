@@ -12,8 +12,7 @@ export const COLORS = {
   border: 'rgba(67, 100, 247, 0.12)',
 
   textPrimary: '#0D1B3E',
-  textSecondary: '#6B7FA3',
-  textMuted: '#6B7FA3',
+  textMuted: '#546E8C',
 
   /** Primary brand blue */
   primary: '#4364F7',
@@ -39,6 +38,10 @@ export const COLORS = {
   /** Local Signal indigo — redemption codes, sponsored accent */
   indigo: '#6366F1',
   indigoSoft: '#EEF2FF',
+
+  /** Semantic tint surfaces for pending/approved states */
+  warningSoft: '#FEF3C7',
+  successSoft: '#F0FDF4',
 } as const
 
 export const SPACING = { xs: 4, sm: 8, md: 12, lg: 16, xl: 20, xxl: 24 } as const

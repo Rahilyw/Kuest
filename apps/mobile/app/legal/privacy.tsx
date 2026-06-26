@@ -138,7 +138,7 @@ const styles = StyleSheet.create({
     marginBottom: SPACING.lg,
   },
   paragraph: {
-    color: COLORS.textSecondary,
+    color: COLORS.textMuted,
     fontSize: 15,
     lineHeight: 22,
     marginBottom: SPACING.sm,

@@ -64,6 +64,7 @@ export default function SignUp() {
         value={username}
         onChangeText={setUsername}
         autoCapitalize="none"
+        accessibilityLabel="Username"
       />
       <TextInput
         style={styles.input}
@@ -73,6 +74,7 @@ export default function SignUp() {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
+        accessibilityLabel="Email address"
       />
       <TextInput
         style={styles.input}
@@ -81,13 +83,26 @@ export default function SignUp() {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        accessibilityLabel="Password"
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSignUp} disabled={loading} activeOpacity={0.85}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSignUp}
+        disabled={loading}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={loading ? 'Creating account' : 'Create account'}
+        accessibilityState={{ disabled: loading }}
+      >
         <Text style={styles.buttonText}>{loading ? 'Creating account…' : 'Create Account'}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.back()}>
+      <TouchableOpacity
+        onPress={() => router.back()}
+        accessibilityRole="link"
+        accessibilityLabel="Sign in to existing account"
+      >
         <Text style={styles.link}>Already have an account? Sign in</Text>
       </TouchableOpacity>
     </View>

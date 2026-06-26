@@ -19,7 +19,6 @@ export default function SignIn() {
 
   return (
     <View style={styles.container}>
-      {/* Wordmark */}
       <View style={styles.hero}>
         <Text style={styles.logo}>{APP_NAME}</Text>
         <Text style={styles.tagline}>Real life, gamified.</Text>
@@ -33,6 +32,7 @@ export default function SignIn() {
         onChangeText={setEmail}
         autoCapitalize="none"
         keyboardType="email-address"
+        accessibilityLabel="Email address"
       />
       <TextInput
         style={styles.input}
@@ -41,17 +41,34 @@ export default function SignIn() {
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        accessibilityLabel="Password"
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSignIn} disabled={loading} activeOpacity={0.85}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSignIn}
+        disabled={loading}
+        activeOpacity={0.85}
+        accessibilityRole="button"
+        accessibilityLabel={loading ? 'Signing in' : 'Sign in'}
+        accessibilityState={{ disabled: loading }}
+      >
         <Text style={styles.buttonText}>{loading ? 'Signing in…' : 'Sign In'}</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/(auth)/forgot-password')}>
+      <TouchableOpacity
+        onPress={() => router.push('/(auth)/forgot-password')}
+        accessibilityRole="link"
+        accessibilityLabel="Forgot password"
+      >
         <Text style={styles.link}>Forgot password?</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => router.push('/(auth)/sign-up')}>
+      <TouchableOpacity
+        onPress={() => router.push('/(auth)/sign-up')}
+        accessibilityRole="link"
+        accessibilityLabel="Create an account"
+      >
         <Text style={styles.link}>Don't have an account? Sign up</Text>
       </TouchableOpacity>
     </View>

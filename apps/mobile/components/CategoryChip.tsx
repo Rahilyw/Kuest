@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   label: {
-    color: COLORS.textSecondary,
+    color: COLORS.textMuted,
     fontWeight: '600',
     fontSize: 13,
     lineHeight: 18,

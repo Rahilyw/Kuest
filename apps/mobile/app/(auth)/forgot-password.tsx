@@ -34,7 +34,12 @@ export default function ForgotPassword() {
 
   return (
     <View style={styles.container}>
-      <TouchableOpacity style={styles.back} onPress={() => router.back()}>
+      <TouchableOpacity
+        style={styles.back}
+        onPress={() => router.back()}
+        accessibilityRole="link"
+        accessibilityLabel="Back to sign in"
+      >
         <Text style={styles.backText}>← Back</Text>
       </TouchableOpacity>
 
@@ -50,7 +55,12 @@ export default function ForgotPassword() {
             If an account exists for {email.trim()}, we sent a reset link. Open it on this
             device to choose a new password.
           </Text>
-          <TouchableOpacity style={styles.button} onPress={() => router.replace('/(auth)/sign-in')}>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => router.replace('/(auth)/sign-in')}
+            accessibilityRole="button"
+            accessibilityLabel="Back to sign in"
+          >
             <Text style={styles.buttonText}>Back to Sign In</Text>
           </TouchableOpacity>
         </View>
@@ -65,12 +75,16 @@ export default function ForgotPassword() {
             autoCapitalize="none"
             keyboardType="email-address"
             autoComplete="email"
+            accessibilityLabel="Email address"
           />
           <TouchableOpacity
             style={styles.button}
             onPress={handleSendReset}
             disabled={loading}
             activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={loading ? 'Sending reset link' : 'Send reset link'}
+            accessibilityState={{ disabled: loading }}
           >
             <Text style={styles.buttonText}>{loading ? 'Sending…' : 'Send Reset Link'}</Text>
           </TouchableOpacity>

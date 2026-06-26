@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     marginBottom: 16,
     overflow: 'hidden',
-    shadowColor: '#0F172A',
+    shadowColor: COLORS.navy,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.07,
     shadowRadius: 16,
@@ -373,7 +373,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.border,
   },
-  statusText: { color: COLORS.textSecondary, fontSize: 13 },
+  statusText: { color: COLORS.textMuted, fontSize: 13 },
   statusAction: { color: COLORS.accent, fontSize: 13, fontWeight: '700' },
   devBanner: {
     color: COLORS.textMuted,
@@ -383,7 +383,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
   },
   pendingBanner: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: COLORS.warningSoft,
     borderRadius: 10,
     padding: 12,
     marginBottom: 8,

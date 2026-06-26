@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
   },
   message: {
     fontSize: 15,
-    color: COLORS.textSecondary,
+    color: COLORS.textMuted,
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: SPACING.xl,
